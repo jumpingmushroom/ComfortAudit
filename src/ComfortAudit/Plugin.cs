@@ -174,8 +174,9 @@ namespace ComfortAudit
             }
 
             // Per frame rather than per scan: the ghost moves continuously, and a half-second
-            // lag on the delta feels broken while sweeping a piece around. The work is a walk over
-            // the handful of pieces already in range.
+            // lag on the delta feels broken while sweeping a piece around. PlacementPreview
+            // memoises on the ghost, both positions and the scan revision, so a stationary
+            // ghost costs a few comparisons and only real movement triggers a fresh walk.
             if (PluginConfig.ShowPlacementPreview.Value)
                 _panel.SetPreview(PlacementPreview.Compute(player, _snapshot));
             else

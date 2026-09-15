@@ -39,9 +39,15 @@ namespace ComfortAudit.Core
             if (Time.time - _computedAt < TtlSeconds)
                 return _cached;
 
-            _cached = Compute(player);
-            _computedAt = Time.time;
-            return _cached;
+            // Only a valid answer is worth holding for 10 s; an invalid one just means the
+            // catalogue is not ready yet, and the next call should try again.
+            Result fresh = Compute(player);
+            if (fresh.Valid)
+            {
+                _cached = fresh;
+                _computedAt = Time.time;
+            }
+            return fresh;
         }
 
         private static Result Compute(Player player)

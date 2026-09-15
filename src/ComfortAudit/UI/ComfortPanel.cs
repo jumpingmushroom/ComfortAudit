@@ -28,6 +28,15 @@ namespace ComfortAudit.UI
         private RectTransform _bodyRect;
         private TextMeshProUGUI _body;
         private string _lastText;
+
+        /// <summary>
+        /// Set by anything that changes what the text would say without a new scan: a config
+        /// edit, a preview change, a layout change. Together with the snapshot revision this
+        /// decides whether Build runs at all, so an idle panel costs nothing per frame.
+        /// </summary>
+        private bool _dirty = true;
+        private int _builtRevision = -1;
+
         private Vector2 _lastSeenPosition;
         private float _positionSettleAt;
         private bool _suppressLayoutApply;
@@ -110,7 +119,8 @@ namespace ComfortAudit.UI
             // Our panel is parented under CustomGUIFront, so it is destroyed with it and rebuilt
             // here. Carry the open state across instead of silently reverting to closed.
             _panel.SetActive(IsOpen);
-            _lastText = null;
+            _lastText = null;   // fresh TMP component: the text must be pushed again
+            _dirty = true;
 
             ApplyLayout();
         }
@@ -141,6 +151,7 @@ namespace ComfortAudit.UI
 
             // Force a rebuild so the new width re-wraps the text.
             _lastText = null;
+            _dirty = true;
         }
 
         /// <summary>
@@ -236,7 +247,7 @@ namespace ComfortAudit.UI
         /// <summary>Drop the change-detection cache so the next Render rebuilds the text.</summary>
         public void InvalidateText()
         {
-            _lastText = null;
+            _dirty = true;
         }
 
         public void Toggle()
@@ -274,20 +285,28 @@ namespace ComfortAudit.UI
                 return;
 
             _preview = preview;
-            _lastText = null;
+            _dirty = true;
         }
 
         private static bool Same(PlacementPreviewResult a, PlacementPreviewResult b)
         {
+            if (ReferenceEquals(a, b))
+                return true;
+
             if (a == null || b == null)
-                return a == null && b == null;
+                return false;
+
+            if (!a.Active && !b.Active)
+                return true;
 
             return a.Active == b.Active
                    && a.Delta == b.Delta
                    && a.InRange == b.InRange
                    && a.NewTotal == b.NewTotal
                    && a.DisplayName == b.DisplayName
-                   && a.BlockedBy == b.BlockedBy;
+                   && a.BlockedBy == b.BlockedBy
+                   // Shown to one decimal when out of range, so anything under 5 cm is the same text.
+                   && Mathf.Abs(a.Distance - b.Distance) < 0.05f;
         }
 
         public void Render(ComfortSnapshot snap)
@@ -296,6 +315,16 @@ namespace ComfortAudit.UI
                 return;
 
             PersistPositionWhenSettled();
+
+            // Build only when something that feeds the text has changed: a new scan, a preview
+            // change, or a config edit. Building every frame and then comparing strings saved
+            // the TMP update but none of the formatting, localisation and allocation behind it.
+            int revision = SnapshotService.Revision;
+            if (!_dirty && revision == _builtRevision)
+                return;
+
+            _dirty = false;
+            _builtRevision = revision;
 
             string text = Build(snap);
 
