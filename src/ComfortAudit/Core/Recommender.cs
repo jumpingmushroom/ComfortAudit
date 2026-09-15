@@ -50,8 +50,18 @@ namespace ComfortAudit.Core
 
             var results = new List<Recommendation>();
 
+            // Unsheltered, nothing but a roof can move the number: lighting a fire or placing a
+            // better chair changes comfort by exactly zero until there is a roof, so advertising
+            // those gains — and ranking "light it" above the roof — described a state the player
+            // is not in. The roof is the only recommendation until it is built.
+            if (!snap.InShelter)
+            {
+                AddShelter(snap, results);
+                snap.Recommendations = results;
+                return;
+            }
+
             AddFreeGains(snap, results, counted, countedNames);
-            AddShelter(snap, results);
             AddPieceUpgrades(snap, player, catalog, results, counted, countedNames, winners, stats);
 
             results.Sort(Compare);
@@ -139,6 +149,15 @@ namespace ComfortAudit.Core
             for (int i = 0; i < catalog.Count; i++)
             {
                 PieceCatalog.Entry c = catalog[i];
+
+                // Not offered by any build tool right now (no table lists it, or it is a
+                // seasonal piece out of season). Known recipe or not, the hammer will not
+                // place it, so it is not advice.
+                if (!PieceCatalog.Available(c, player))
+                {
+                    stats.NotInMenu++;
+                    continue;
+                }
 
                 int gain = GainFor(c.Group, c.Comfort, c.NameToken, counted, countedNames);
                 if (gain <= 0)

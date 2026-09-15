@@ -145,6 +145,9 @@ namespace ComfortAudit.Model
     public sealed class RecommendationStats
     {
         public int Catalogue;
+
+        /// <summary>Not offered by any build tool right now: no piece table, or out of season.</summary>
+        public int NotInMenu;
         public int NoGain;
         public int RecipeUnknown;
         public int StationOutOfRange;
@@ -154,8 +157,8 @@ namespace ComfortAudit.Model
         public override string ToString()
         {
             return string.Format(
-                "catalogue={0} noGain={1} recipeUnknown={2} stationOutOfRange={3} materialsShort={4} -> candidates={5}",
-                Catalogue, NoGain, RecipeUnknown, StationOutOfRange, MaterialsShort, Candidates);
+                "catalogue={0} notInMenu={1} noGain={2} recipeUnknown={3} stationOutOfRange={4} materialsShort={5} -> candidates={6}",
+                Catalogue, NotInMenu, NoGain, RecipeUnknown, StationOutOfRange, MaterialsShort, Candidates);
         }
     }
 

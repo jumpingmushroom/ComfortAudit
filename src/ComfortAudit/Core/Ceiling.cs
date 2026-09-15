@@ -64,7 +64,15 @@ namespace ComfortAudit.Core
             for (int i = 0; i < catalog.Count; i++)
             {
                 PieceCatalog.Entry e = catalog[i];
-                bool known = player.HaveRequirements(e.Piece, Player.RequirementMode.IsKnown);
+
+                // A piece no build tool offers is unreachable at any progression, so it is in
+                // neither ceiling. A seasonal piece out of season counts towards "everything"
+                // (its season will come round) but not towards what can be built today.
+                if (!e.InBuildMenu)
+                    continue;
+
+                bool known = PieceCatalog.Available(e, player)
+                             && player.HaveRequirements(e.Piece, Player.RequirementMode.IsKnown);
 
                 if (ComfortGroups.Stacks(e.Group))
                 {

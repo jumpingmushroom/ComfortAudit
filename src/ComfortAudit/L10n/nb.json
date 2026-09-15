@@ -22,6 +22,8 @@
   "comfortaudit_no": "nei",
   "comfortaudit_contributing": "Bidrar",
   "comfortaudit_ignored": "Ignorert",
+  "comfortaudit_contributing_noshelter": "Ville bidratt med tak",
+  "comfortaudit_ignored_more": "… og {0} til",
   "comfortaudit_missing": "Manglende grupper",
   "comfortaudit_unlit": "Slukket",
   "comfortaudit_unlit_hint": "slukket — tenn den for +{0}",

@@ -22,6 +22,8 @@
   "comfortaudit_no": "no",
   "comfortaudit_contributing": "Contributing",
   "comfortaudit_ignored": "Ignored",
+  "comfortaudit_contributing_noshelter": "Would contribute with a roof",
+  "comfortaudit_ignored_more": "… and {0} more",
   "comfortaudit_missing": "Missing groups",
   "comfortaudit_unlit": "Unlit",
   "comfortaudit_unlit_hint": "unlit — light it for +{0}",

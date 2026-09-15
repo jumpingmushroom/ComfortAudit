@@ -80,17 +80,20 @@ namespace ComfortAudit.Core
             snap.ComfortLevel = total;
             snap.VanillaComfortLevel = player.GetComfortLevel();
 
-            // The game refreshes its cache only every 2 s (Player.UpdateBaseValue), so a
-            // difference is normal right after a change. Flag it only once that has settled.
-            snap.Mismatch = snap.VanillaComfortLevel > 0
-                            && snap.ComfortLevel != snap.VanillaComfortLevel
-                            && Time.time - LastChangeTime > 2.5f;
-
+            // Record the change first, then judge. The other way round, the very first scan
+            // after placing a piece compared fresh comfort against the game's stale cache with
+            // the *previous* change time and flashed the "another mod" warning for one scan.
             if (snap.ComfortLevel != LastComfort)
             {
                 LastComfort = snap.ComfortLevel;
                 LastChangeTime = Time.time;
             }
+
+            // The game refreshes its cache only every 2 s (Player.UpdateBaseValue), so a
+            // difference is normal right after a change. Flag it only once that has settled.
+            snap.Mismatch = snap.VanillaComfortLevel > 0
+                            && snap.ComfortLevel != snap.VanillaComfortLevel
+                            && Time.time - LastChangeTime > 2.5f;
 
             snap.PotentialIfSheltered = snap.InShelter
                 ? snap.ComfortLevel
@@ -111,6 +114,13 @@ namespace ComfortAudit.Core
 
         private static int LastComfort = -1;
         private static float LastChangeTime;
+
+        /// <summary>Forget the previous world's comfort history so the settle timer restarts.</summary>
+        public static void ResetHistory()
+        {
+            LastComfort = -1;
+            LastChangeTime = Time.time;
+        }
 
         private static void ComputeMissingGroups(ComfortSnapshot snap)
         {

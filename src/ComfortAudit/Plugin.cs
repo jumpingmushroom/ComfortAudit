@@ -99,6 +99,7 @@ namespace ComfortAudit
 
             // Prefabs are per-world; drop the catalogue so a different world rebuilds it.
             PieceCatalog.Invalidate();
+            ComfortScanner.ResetHistory();
             Diagnostics.Reset();
         }
 
@@ -109,6 +110,7 @@ namespace ComfortAudit
             SnapshotService.Clear();
             _nextScan = 0f;
             PieceCatalog.Invalidate();
+            ComfortScanner.ResetHistory();
             Diagnostics.Reset();
         }
 

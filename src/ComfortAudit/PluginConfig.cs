@@ -27,6 +27,7 @@ namespace ComfortAudit
         public static ConfigEntry<bool> Verbose;
         public static ConfigEntry<RecommendationFilter> Filter;
         public static ConfigEntry<int> MaxRecommendations;
+        public static ConfigEntry<int> MaxIgnored;
         public static ConfigEntry<bool> ShowMaterials;
         public static ConfigEntry<bool> ShowCeiling;
         public static ConfigEntry<bool> ShowComfortOnIcon;
@@ -142,6 +143,14 @@ namespace ComfortAudit
                     null,
                     Attr(45)));
 
+            MaxIgnored = cfg.Bind("Panel", "MaxIgnoredShown", 8,
+                new ConfigDescription(
+                    "How many ignored pieces to list before collapsing the rest into a count. " +
+                    "This is the only list with no natural bound, and it is what made the " +
+                    "panel outgrow the screen in a hall full of duplicate chairs.",
+                    new AcceptableValueRange<int>(1, 50),
+                    Attr(48)));
+
             ShowComfortOnIcon = cfg.Bind("Panel", "ShowComfortOnIcon", true,
                 new ConfigDescription(
                     "Append current comfort and your ceiling to the Rested icon's label. This is " +
@@ -172,6 +181,7 @@ namespace ComfortAudit
             ShowCeiling.SettingChanged += (s, e) => Raise(ContentChanged);
             ShowPlacementPreview.SettingChanged += (s, e) => Raise(ContentChanged);
             ShowPrefabNames.SettingChanged += (s, e) => Raise(ContentChanged);
+            MaxIgnored.SettingChanged += (s, e) => Raise(ContentChanged);
         }
 
         private static void DrawResetButton(ConfigEntryBase entry)

@@ -64,6 +64,11 @@ namespace ComfortAudit.UI
             // corner so the position means what the config says it means.
             _panelRect.pivot = new Vector2(0f, 1f);
 
+            // The panel's height is capped to the canvas in Render. Anything past the cap is
+            // clipped at the frame instead of drawing over the HUD below it.
+            if (_panel.GetComponent<RectMask2D>() == null)
+                _panel.AddComponent<RectMask2D>();
+
             // The woodpanel is a busy mid-brown texture; coloured text on it reads poorly no
             // matter which hues we pick. A translucent dark plate inset inside the panel gives
             // every colour a consistent dark ground to sit on, and stretches with the panel.
@@ -306,12 +311,34 @@ namespace ComfortAudit.UI
             float h = _body.GetPreferredValues(text, width - Padding * 2f, 0f).y;
             if (_panelRect != null)
             {
-                _panelRect.sizeDelta = new Vector2(width, h + Padding * 2f + BottomSlack);
+                // Never taller than the canvas: a hall full of duplicate chairs used to grow the
+                // panel past the bottom of the screen with the recommendations on the far side.
+                Vector2 canvas = CanvasSize();
+                float height = Mathf.Min(h + Padding * 2f + BottomSlack, canvas.y - HeightMargin);
+                _panelRect.sizeDelta = new Vector2(width, height);
 
                 if (_needsCentre)
+                {
                     CentreOnCanvas();
+                }
+                else
+                {
+                    // Growing content can push the bottom edge off-screen even when the top is
+                    // fine. Nudge the panel up just enough, without treating that as a drag.
+                    Vector2 pos = _panelRect.anchoredPosition;
+                    float lowest = Mathf.Min(0f, height - canvas.y);
+                    if (pos.y < lowest)
+                    {
+                        pos.y = lowest;
+                        _panelRect.anchoredPosition = pos;
+                        _lastSeenPosition = pos;
+                    }
+                }
             }
         }
+
+        /// <summary>Space left above and below a full-height panel.</summary>
+        private const float HeightMargin = 24f;
 
         // ---- text assembly -------------------------------------------------
 
@@ -501,8 +528,13 @@ namespace ComfortAudit.UI
                 return;
             }
 
-            // Contributing
-            sb.Append(Orange(Strings.Get("$comfortaudit_contributing"))).Append('\n');
+            // Contributing — or, unsheltered, what *would* contribute. Outside a roof the walk
+            // still attributes winners so the player can see what is in place, but nothing is
+            // feeding the number, so the header says so and the values are not lit up.
+            bool sheltered = snap.InShelter;
+            sb.Append(Orange(Strings.Get(sheltered
+                ? "$comfortaudit_contributing"
+                : "$comfortaudit_contributing_noshelter"))).Append('\n');
             bool any = false;
             for (int i = 0; i < snap.Pieces.Count; i++)
             {
@@ -518,9 +550,13 @@ namespace ComfortAudit.UI
                 {
                     sb.Append("  ").Append(Bad(Strings.Get("$comfortaudit_unlit_hint", e.RawComfort)));
                 }
-                else
+                else if (sheltered)
                 {
                     sb.Append("  ").Append(Orange("+" + e.Comfort));
+                }
+                else
+                {
+                    sb.Append("  ").Append(Dim).Append("+").Append(e.Comfort).Append(Reset);
                 }
 
                 AppendSuffix(sb, e);
@@ -529,8 +565,12 @@ namespace ComfortAudit.UI
             if (!any)
                 sb.Append(Dim).Append("  —").Append(Reset).Append('\n');
 
-            // Ignored
+            // Ignored. Capped: this is the one list with no natural bound (every duplicate
+            // chair in a dining hall lands here), and it was what pushed the panel off-screen.
             bool header = false;
+            int shown = 0;
+            int hidden = 0;
+            int maxIgnored = Mathf.Max(1, PluginConfig.MaxIgnored.Value);
             for (int i = 0; i < snap.Pieces.Count; i++)
             {
                 PieceEntry e = snap.Pieces[i];
@@ -543,6 +583,13 @@ namespace ComfortAudit.UI
                     header = true;
                 }
 
+                if (shown >= maxIgnored)
+                {
+                    hidden++;
+                    continue;
+                }
+                shown++;
+
                 sb.Append(Dim).Append("  ").Append(ComfortGroups.Name(e.Group)).Append(": ")
                   .Append(e.DisplayName).Append("  ");
 
@@ -553,6 +600,12 @@ namespace ComfortAudit.UI
                 sb.Append(" — ").Append(Strings.Get("$comfortaudit_safe_to_remove"));
                 AppendSuffix(sb, e);
                 sb.Append(Reset).Append('\n');
+            }
+
+            if (hidden > 0)
+            {
+                sb.Append(Dim).Append("  ").Append(Strings.Get("$comfortaudit_ignored_more", hidden))
+                  .Append(Reset).Append('\n');
             }
 
             AppendMissing(sb, snap);
