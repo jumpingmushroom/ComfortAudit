@@ -73,6 +73,12 @@ namespace ComfortAudit.Core
                 });
             }
 
+            // Baseline from the same fresh buffer, not from the cached snapshot: the snapshot can
+            // be up to ScanInterval old, so right after placing a chair the walk-with-ghost saw
+            // the new chair while the baseline did not, and the next identical ghost reported
+            // the same gain again until the snapshot caught up.
+            int baseline = ComfortWalk.Run(Items, snap.InShelter);
+
             Items.Add(new ComfortWalk.Item
             {
                 Group = piece.m_comfortGroup,
@@ -83,7 +89,7 @@ namespace ComfortAudit.Core
 
             Outcomes.Clear();
             result.NewTotal = ComfortWalk.Run(Items, snap.InShelter, Outcomes);
-            result.Delta = result.NewTotal - snap.ComfortLevel;
+            result.Delta = result.NewTotal - baseline;
 
             if (result.Delta <= 0)
                 result.BlockedBy = FindBlocker(Buffer);
