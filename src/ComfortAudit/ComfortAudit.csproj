@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>ComfortAudit</AssemblyName>
     <RootNamespace>ComfortAudit</RootNamespace>
-    <Version>0.4.0</Version>
+    <Version>0.4.1</Version>
     <Description>Shows which furniture is feeding your Comfort level and what is being ignored.</Description>
   </PropertyGroup>
 
