@@ -18,7 +18,7 @@ namespace ComfortAudit
     {
         public const string PluginGuid = "com.jumpingmushroom.comfortaudit";
         public const string PluginName = "ComfortAudit";
-        public const string PluginVersion = "0.4.0";
+        public const string PluginVersion = "0.4.1";
 
         internal static ManualLogSource Log;
 
@@ -29,6 +29,7 @@ namespace ComfortAudit
         private float _nextScan;
         private bool _guiReady;
         private Player _lastPlayer;
+        private bool _hadPlayer;
 
         private void Awake()
         {
@@ -63,6 +64,12 @@ namespace ComfortAudit
         {
             if (GUIManager.IsHeadless())
                 return;
+
+            // CustomGUIFront is rebuilt when moving between world and menu, which destroys our
+            // panel and re-creates it carrying the previous open state. At the menu there is
+            // nothing to audit, so make sure it never reappears there.
+            if (Player.m_localPlayer == null)
+                _panel.SetOpen(false);
 
             _panel.Create();
             _guiReady = _panel.Created;
@@ -112,19 +119,28 @@ namespace ComfortAudit
 
             Player player = Player.m_localPlayer;
 
-            // Detect logout / world change here rather than from Player.OnDestroy: that method
-            // nulls m_localPlayer inside its own body, so a postfix comparing against it always
-            // sees null and never fires. Polling the field is also robust to teardown ordering
-            // we do not control.
-            if (player != _lastPlayer)
-            {
-                if (player == null)
-                    LocalPlayerGone();
-                else
-                    LocalPlayerArrived();
+            // Detect logout / world change by polling, rather than from Player.OnDestroy: that
+            // method nulls m_localPlayer inside its own body, so a postfix comparing against it
+            // never matches.
+            //
+            // Track presence as a bool and identity with ReferenceEquals. UnityEngine.Object
+            // overloads == so that a *destroyed* object compares equal to null, which means
+            // `player != _lastPlayer` is false on logout — null versus a destroyed Player reads
+            // as "unchanged" and the panel is never told to close.
+            bool hasPlayer = player != null;             // Unity's ==: false once destroyed
+            bool sameInstance = ReferenceEquals(player, _lastPlayer);
 
-                _lastPlayer = player;
+            if (!hasPlayer && _hadPlayer)
+            {
+                LocalPlayerGone();
             }
+            else if (hasPlayer && (!_hadPlayer || !sameInstance))
+            {
+                LocalPlayerArrived();
+            }
+
+            _hadPlayer = hasPlayer;
+            _lastPlayer = player;
 
             // The panel is an in-world tool; with no player there is nothing to audit.
             if (player == null)

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.1 — logout fix
+
+- Fixed: the panel stayed open after logging out, reappearing at the main menu as an empty frame
+  that F7 could not close.
+
+  The 0.3.0 fix replaced a `Player.OnDestroy` patch with polling `Player.m_localPlayer`, comparing
+  it against the previous reference. That comparison never fired, because `UnityEngine.Object`
+  overloads `==` so a *destroyed* object compares equal to `null` — on logout the field is `null`
+  and the cached reference is destroyed, which Unity reads as "unchanged". Presence is now tracked
+  as a plain bool and identity with `ReferenceEquals`, neither of which Unity reinterprets.
+
+  As a second line of defence, the panel is forced closed when the GUI is rebuilt with no local
+  player, so it cannot return at the menu even if detection is somehow missed.
+
 ## 0.4.0 — placement preview
 
 - While building, the panel shows what the held piece would add if placed where the ghost is:
