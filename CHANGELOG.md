@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.4.3 — review fixes
+
+Eight fixes from a full code review, all in the mod itself.
+
+- Fixed: the "another mod is changing the comfort calculation" warning flashed for one scan
+  every time comfort changed. The mismatch test ran before the change was recorded, so the first
+  scan after placing a piece compared fresh comfort against the game's 2 s cache with the previous
+  change time. The history is also reset on login and logout now.
+- Fixed: unsheltered, the panel listed furniture under "Contributing" with lit-up values and the
+  suggestions advertised gains — "light it +2" above "build a roof" — that change comfort by
+  exactly zero without a roof. The section now reads "Would contribute with a roof" with dimmed
+  values, and the roof is the only suggestion until it exists.
+- Fixed: the panel could grow past the bottom of the screen, taking the suggestions with it. The
+  Ignored list — the only one with no natural bound — collapses after `MaxIgnoredShown` rows
+  (default 8) into "… and N more", the panel is capped to the screen height and clipped, and it
+  nudges itself up when its bottom edge would otherwise leave the canvas.
+- Fixed: suggestions and the unlocked ceiling included pieces no build tool offers, and seasonal
+  pieces out of season — a maypole in September passed the known-recipe test and was recommended.
+  The catalogue now records build-table membership and `m_enabled`, mirroring
+  `PieceTable.UpdateAvailable`. Excluded pieces are named in the log once per world, with the
+  nearest table entry, so an over-eager filter is visible rather than silent.
+- Fixed: right after placing a chair, the placement preview reported the same gain again for up to
+  half a second, because it subtracted the cached snapshot from a fresh walk. It now walks the same
+  fresh buffer with and without the ghost and reports the difference.
+- The placement preview memoises on the held piece, both positions and the scan revision. A
+  stationary ghost now costs a few comparisons per frame instead of a registry scan and two walks.
+- The panel text is rebuilt only when a scan, the preview or a config setting changes, instead of
+  every frame followed by a string comparison that saved the TMP update but none of the formatting.
+- The Rested icon label no longer drives a full scan every 2 s while the panel is closed. It reads
+  the panel's scan when one is fresh, and otherwise the game's own cached comfort plus the cached
+  ceiling — so a closed panel really does cost nothing.
+- The out-of-range distance in the preview now updates as the ghost moves.
+- The ceiling no longer caches a "not ready" answer for 10 s during the first seconds of a world.
+- Docs: the README's claim that "the two armour stands" stack was derived from two legacy
+  prefabs the hammer cannot place. The buildable armour stand sits in the Display group.
+
 ## 0.4.2 — readability
 
 - Material lists no longer annotate every entry with "(have 0)". Red already means you do not have

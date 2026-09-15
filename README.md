@@ -69,7 +69,9 @@ a campfire under open sky with a fully furnished hall contributing nothing.
 
 **Ungrouped pieces stack.** Most furniture is deduplicated to the best piece per group, but pieces
 with no comfort group are only deduplicated by name, so several different ones all count. In vanilla
-1.0.12 that is the two armour stands, the maypole and the yule tree, at +1 each.
+1.0.12 the buildable ones are the maypole and the yule tree, at +1 each, and only while in
+season. Two legacy gendered armour-stand prefabs also carry +1 but cannot be placed; the hammer's
+armour stand counts in the Display group instead.
 
 **Rested duration is `8:00 + 1:00 per comfort level above 1`**, with no cap on comfort. The mod
 reads those numbers from the game at runtime rather than assuming them.
@@ -100,6 +102,7 @@ Through BepInEx config, editable in-game if you run a configuration manager:
 | `ShowComfortOnIcon` | on | Comfort on the Rested status icon |
 | `Filter` | KnownAndStationInRange | KnownOnly / KnownAndStationInRange / Buildable |
 | `MaxShown` | 5 | Number of suggestions |
+| `MaxIgnoredShown` | 8 | Ignored pieces listed before the rest collapse to a count |
 | `ShowMaterials` | on | Material cost and have/need per suggestion |
 | `ShowDistances`, `ShowPrefabNames` | off | Diagnostics for the piece list |
 

@@ -20,21 +20,21 @@ resolves to *wet*, *spotted*, or *cold* instead of a mystery.
 
 **The panel.** What is in range, what each piece contributes, and the cheapest way up.
 
-![Comfort Audit panel](https://raw.githubusercontent.com/jumpingmushroom/ComfortAudit/v0.4.2/docs/images/panel.png)
+![Comfort Audit panel](https://raw.githubusercontent.com/jumpingmushroom/ComfortAudit/v0.4.3/docs/images/panel.png)
 
 **Shelter is a gate, not a bonus.** Step outside and comfort collapses to 1 — the furniture stops
 counting entirely, not partially. Building a roof here is worth +4.
 
-![Unsheltered](https://raw.githubusercontent.com/jumpingmushroom/ComfortAudit/v0.4.2/docs/images/unsheltered.png)
+![Unsheltered](https://raw.githubusercontent.com/jumpingmushroom/ComfortAudit/v0.4.3/docs/images/unsheltered.png)
 
 **Pieces that are doing nothing.** The stool loses its group to the chair, so removing it costs you
 nothing at all.
 
-![Ignored pieces](https://raw.githubusercontent.com/jumpingmushroom/ComfortAudit/v0.4.2/docs/images/ignored.png)
+![Ignored pieces](https://raw.githubusercontent.com/jumpingmushroom/ComfortAudit/v0.4.3/docs/images/ignored.png)
 
 **Placement preview.** While building, what the held piece would add if placed where the ghost is.
 
-![Placement preview](https://raw.githubusercontent.com/jumpingmushroom/ComfortAudit/v0.4.2/docs/images/preview.png)
+![Placement preview](https://raw.githubusercontent.com/jumpingmushroom/ComfortAudit/v0.4.3/docs/images/preview.png)
 
 ## Two things worth knowing
 
@@ -43,7 +43,9 @@ at all* — not reduced, zero. The panel shows what comfort would be at your pos
 
 **Ungrouped pieces stack.** Most furniture is deduplicated to the best piece per group, but pieces
 with no comfort group are only deduplicated by name, so several different ones all count. In
-vanilla 1.0.12 that is the two armour stands, the maypole and the yule tree, at +1 each.
+vanilla 1.0.12 the buildable ones are the maypole and the yule tree, at +1 each, and only while in
+season. Two legacy gendered armour-stand prefabs also carry +1 but cannot be placed; the hammer's
+armour stand counts in the Display group instead.
 
 Rested duration is `8:00 + 1:00 per comfort level above 1`, and the panel reads those numbers from
 the game rather than assuming them.
