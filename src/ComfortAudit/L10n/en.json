@@ -75,5 +75,6 @@
   "comfortaudit_preview_blocked": "already beaten by {0}",
   "comfortaudit_preview_outofrange": "{0}: {1:0.0} m away — outside the {2} m radius",
   "comfortaudit_preview_noshelter": "no gain without a roof",
-  "comfortaudit_rec_stacking": "stacks — adds on top of what you have"
+  "comfortaudit_rec_stacking": "stacks — adds on top of what you have",
+  "comfortaudit_have": "(have {0})"
 }

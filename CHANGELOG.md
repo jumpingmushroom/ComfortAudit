@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.2 — readability
+
+- Material lists no longer annotate every entry with "(have 0)". Red already means you do not have
+  the material; the count now appears only when you have some but not enough, which is the case
+  where the number tells you something.
+- Blank lines before the Ignored and Missing Groups sections, which previously ran flush against
+  the block above them.
+- The last line no longer sits hard against the panel frame: TextMeshPro under-reports preferred
+  height for rich text mixing tag sizes, so the box is given a little slack.
+- Screenshots added to the README and the Thunderstore page.
+
 ## 0.4.1 — logout fix
 
 - Fixed: the panel stayed open after logging out, reappearing at the main menu as an empty frame

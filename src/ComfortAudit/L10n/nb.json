@@ -75,5 +75,6 @@
   "comfortaudit_preview_blocked": "allerede slått av {0}",
   "comfortaudit_preview_outofrange": "{0}: {1:0.0} m unna — utenfor {2} m-radiusen",
   "comfortaudit_preview_noshelter": "ingen gevinst uten tak",
-  "comfortaudit_rec_stacking": "stabler — legges til det du har"
+  "comfortaudit_rec_stacking": "stabler — legges til det du har",
+  "comfortaudit_have": "(har {0})"
 }

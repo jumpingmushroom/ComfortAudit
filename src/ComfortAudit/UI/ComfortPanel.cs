@@ -17,6 +17,12 @@ namespace ComfortAudit.UI
     {
         private const float Padding = 18f;
 
+        /// <summary>
+        /// TMP under-reports preferred height slightly for rich text mixing tag sizes, which left
+        /// the final line sitting hard against the frame.
+        /// </summary>
+        private const float BottomSlack = 10f;
+
         private GameObject _panel;
         private RectTransform _panelRect;
         private RectTransform _bodyRect;
@@ -300,7 +306,7 @@ namespace ComfortAudit.UI
             float h = _body.GetPreferredValues(text, width - Padding * 2f, 0f).y;
             if (_panelRect != null)
             {
-                _panelRect.sizeDelta = new Vector2(width, h + Padding * 2f);
+                _panelRect.sizeDelta = new Vector2(width, h + Padding * 2f + BottomSlack);
 
                 if (_needsCentre)
                     CentreOnCanvas();
@@ -367,7 +373,8 @@ namespace ComfortAudit.UI
             sb.Append("   ").Append(Strings.Get("$comfortaudit_rested")).Append(' ')
               .Append(RestedMath.Format(snap.RestedSeconds));
 
-            if (!snap.TtlFromLiveEffect)
+            // Where the timing came from only matters when diagnosing it.
+            if (!snap.TtlFromLiveEffect && PluginConfig.Verbose.Value)
                 sb.Append(' ').Append(Dim).Append('(').Append(Strings.Get("$comfortaudit_from_prefab")).Append(')').Append(Reset);
 
             sb.Append('\n').Append(Dim);
@@ -532,7 +539,7 @@ namespace ComfortAudit.UI
 
                 if (!header)
                 {
-                    sb.Append(Orange(Strings.Get("$comfortaudit_ignored"))).Append('\n');
+                    sb.Append('\n').Append(Orange(Strings.Get("$comfortaudit_ignored"))).Append('\n');
                     header = true;
                 }
 
@@ -625,7 +632,12 @@ namespace ComfortAudit.UI
             else if (r.Kind == RecommendationKind.Stacking)
                 sb.Append("  ").Append(Dim).Append(Strings.Get("$comfortaudit_rec_stacking")).Append(Reset);
             else if (r.Kind == RecommendationKind.NewGroup && r.GroupKnown)
-                sb.Append("  ").Append(Dim).Append(ComfortGroups.Name(r.Group)).Append(Reset);
+            {
+                // Skip when the piece is simply named after its group ("+1 Bed  Bed").
+                string group = ComfortGroups.Name(r.Group);
+                if (!string.Equals(group, r.DisplayName, System.StringComparison.OrdinalIgnoreCase))
+                    sb.Append("  ").Append(Dim).Append(group).Append(Reset);
+            }
 
             sb.Append('\n');
 
@@ -648,7 +660,15 @@ namespace ComfortAudit.UI
                 if (i > 0) sb.Append(Dim).Append(", ").Append(Reset);
 
                 string line = m.Amount + " " + m.DisplayName;
-                sb.Append(m.Enough ? Dim + line + Reset : Bad(line + " (" + m.Have + ")"));
+                // Red already conveys "you do not have this"; the count is only informative
+                // when you have some but not enough. Annotating every line with (have 0) was
+                // noise that swamped the material list.
+                if (m.Enough)
+                    sb.Append(Dim).Append(line).Append(Reset);
+                else if (m.Have > 0)
+                    sb.Append(Bad(line + " " + Strings.Get("$comfortaudit_have", m.Have)));
+                else
+                    sb.Append(Bad(line));
             }
             sb.Append('\n');
         }
@@ -667,7 +687,7 @@ namespace ComfortAudit.UI
             if (snap.MissingGroups.Count == 0)
                 return;
 
-            sb.Append(Orange(Strings.Get("$comfortaudit_missing"))).Append('\n').Append(Dim).Append("  ");
+            sb.Append('\n').Append(Orange(Strings.Get("$comfortaudit_missing"))).Append('\n').Append(Dim).Append("  ");
             for (int i = 0; i < snap.MissingGroups.Count; i++)
             {
                 if (i > 0) sb.Append(", ");
