@@ -182,6 +182,7 @@ namespace ComfortAudit
             ShowPlacementPreview.SettingChanged += (s, e) => Raise(ContentChanged);
             ShowPrefabNames.SettingChanged += (s, e) => Raise(ContentChanged);
             MaxIgnored.SettingChanged += (s, e) => Raise(ContentChanged);
+            Verbose.SettingChanged += (s, e) => Raise(ContentChanged);
         }
 
         private static void DrawResetButton(ConfigEntryBase entry)

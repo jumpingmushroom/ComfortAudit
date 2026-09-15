@@ -23,23 +23,62 @@ namespace ComfortAudit.Core
         /// <summary>Index used for the hypothetical piece, distinct from any real piece index.</summary>
         private const int GhostSource = -2;
 
+        /// <summary>Shared "nothing to preview" answer, so the per-frame path allocates nothing.</summary>
+        private static readonly PlacementPreviewResult None = new PlacementPreviewResult();
+
+        // Memo of the last real computation. Compute is called every frame while the panel is
+        // open, and a registry scan plus two walks per frame is wasteful when neither the ghost
+        // nor the player has moved — which is exactly the case while someone reads the panel.
+        private static PlacementPreviewResult _memo;
+        private static int _memoGhostId;
+        private static Vector3 _memoGhostPos;
+        private static Vector3 _memoPlayerPos;
+        private static int _memoRevision = -1;
+        private static bool _memoShelter;
+
+        /// <summary>Movement below this is jitter, not a new placement.</summary>
+        private const float MoveEpsilonSq = 0.05f * 0.05f;
+
         public static PlacementPreviewResult Compute(Player player, ComfortSnapshot snap)
         {
-            var result = new PlacementPreviewResult();
-
             if (player == null || snap == null || !snap.Valid)
-                return result;
+                return None;
 
             GameObject ghost = player.m_placementGhost;
             if (ghost == null || !ghost.activeInHierarchy)
-                return result;
+                return None;
 
             var piece = ghost.GetComponent<Piece>();
             if (piece == null || piece.m_comfort <= 0)
-                return result;   // holding something, but not a comfort piece
+                return None;   // holding something, but not a comfort piece
+
+            Vector3 playerPos = player.transform.position;
+            Vector3 ghostPos = ghost.transform.position;
+            int ghostId = ghost.GetInstanceID();
+
+            // Same held piece, nobody moved, world unchanged since the last scan: the answer is
+            // the one we already have. The ghost object is recreated whenever the selection
+            // changes, so its instance id is a reliable key for "same piece".
+            if (_memo != null
+                && ghostId == _memoGhostId
+                && SnapshotService.Revision == _memoRevision
+                && snap.InShelter == _memoShelter
+                && (ghostPos - _memoGhostPos).sqrMagnitude < MoveEpsilonSq
+                && (playerPos - _memoPlayerPos).sqrMagnitude < MoveEpsilonSq)
+            {
+                return _memo;
+            }
+
+            var result = new PlacementPreviewResult();
+            _memo = result;
+            _memoGhostId = ghostId;
+            _memoGhostPos = ghostPos;
+            _memoPlayerPos = playerPos;
+            _memoRevision = SnapshotService.Revision;
+            _memoShelter = snap.InShelter;
 
             result.Active = true;
-            result.DisplayName = Names.Display(piece, ghost.name);
+            result.DisplayName = Names.Display(piece, PrefabName(ghost.name));
             result.Group = piece.m_comfortGroup;
             result.GroupKnown = ComfortGroups.IsKnown(piece.m_comfortGroup);
 
@@ -47,8 +86,6 @@ namespace ComfortAudit.Core
             // but what the player wants to know is what the piece is worth once in use.
             result.PieceComfort = piece.m_comfort;
 
-            Vector3 playerPos = player.transform.position;
-            Vector3 ghostPos = ghost.transform.position;
             result.Distance = Vector3.Distance(playerPos, ghostPos);
 
             // Comfort is always evaluated at the resting spot, so a piece only helps if it lands
@@ -95,6 +132,15 @@ namespace ComfortAudit.Core
                 result.BlockedBy = FindBlocker(Buffer);
 
             return result;
+        }
+
+        /// <summary>The ghost is an instantiated copy, so its name carries Unity's "(Clone)" suffix.</summary>
+        private static string PrefabName(string ghostName)
+        {
+            const string clone = "(Clone)";
+            if (ghostName != null && ghostName.EndsWith(clone))
+                return ghostName.Substring(0, ghostName.Length - clone.Length);
+            return ghostName;
         }
 
         /// <summary>

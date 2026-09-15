@@ -1,6 +1,7 @@
 using ComfortAudit.Core;
 using ComfortAudit.Model;
 using HarmonyLib;
+using UnityEngine;
 
 namespace ComfortAudit.Patches
 {
@@ -18,7 +19,11 @@ namespace ComfortAudit.Patches
     [HarmonyPatch(typeof(StatusEffect), nameof(StatusEffect.GetIconText))]
     public static class StatusEffect_GetIconText_Patch
     {
-        private static int _revision = -1;
+        /// <summary>How long a panel scan stays preferable to the game's own cached comfort.</summary>
+        private const float FreshScanSeconds = 2.5f;
+
+        private static int _comfort = -1;
+        private static int _ceiling = -1;
         private static string _suffix = string.Empty;
 
         private static void Postfix(StatusEffect __instance, ref string __result)
@@ -34,25 +39,60 @@ namespace ComfortAudit.Patches
             __result = string.IsNullOrEmpty(__result) ? _suffix : __result + "  " + _suffix;
         }
 
-        /// <summary>Called once per frame per effect, so build the string only when it changes.</summary>
+        /// <summary>
+        /// Called once per frame while Rested is active, so this must stay cheap. It used to
+        /// request a snapshot every 2 s, which ran the full scan — piece walk, recommender,
+        /// station lookups — with the panel closed, contradicting the promise that a closed
+        /// panel costs nothing. Now it reads the panel's scan only when one is fresh, and
+        /// otherwise the game's own cached comfort plus the 10 s-cached ceiling.
+        /// </summary>
         private static void Refresh()
         {
-            ComfortSnapshot snap = SnapshotService.Get(2f);
-
-            if (SnapshotService.Revision == _revision)
-                return;
-
-            _revision = SnapshotService.Revision;
-
-            if (!snap.Valid)
+            Player player = Player.m_localPlayer;
+            if (player == null)
             {
-                _suffix = string.Empty;
+                Set(0, 0);
                 return;
             }
 
-            _suffix = snap.CeilingValid && snap.CeilingUnlocked > 0
-                ? snap.ComfortLevel + "/" + snap.CeilingUnlocked
-                : snap.ComfortLevel.ToString();
+            int comfort;
+            int ceiling;
+
+            ComfortSnapshot snap = SnapshotService.Current;
+            if (snap.Valid && Time.time - SnapshotService.LastScanTime < FreshScanSeconds)
+            {
+                // The panel is open and scanning: reuse its numbers so both surfaces agree.
+                comfort = snap.ComfortLevel;
+                ceiling = snap.CeilingValid ? snap.CeilingUnlocked : 0;
+            }
+            else
+            {
+                // Player.GetComfortLevel is the game's cache, refreshed every 2 s — the same
+                // cadence the old scan ran at, for none of the cost. It reads 0 until the first
+                // UpdateBaseValue, in which case nothing is appended.
+                comfort = player.GetComfortLevel();
+                Ceiling.Result c = Ceiling.Get(player);
+                ceiling = c.Valid ? c.Unlocked : 0;
+            }
+
+            Set(comfort, ceiling);
+        }
+
+        /// <summary>Rebuild the string only when a number actually changes.</summary>
+        private static void Set(int comfort, int ceiling)
+        {
+            if (comfort == _comfort && ceiling == _ceiling)
+                return;
+
+            _comfort = comfort;
+            _ceiling = ceiling;
+
+            if (comfort <= 0)
+                _suffix = string.Empty;
+            else if (ceiling > 0)
+                _suffix = comfort + "/" + ceiling;
+            else
+                _suffix = comfort.ToString();
         }
     }
 }

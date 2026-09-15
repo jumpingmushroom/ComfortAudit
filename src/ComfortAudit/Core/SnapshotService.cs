@@ -15,6 +15,9 @@ namespace ComfortAudit.Core
 
         public static ComfortSnapshot Current => _current;
 
+        /// <summary>Time.time of the last real scan, so callers can judge staleness without forcing one.</summary>
+        public static float LastScanTime => _lastScan;
+
         /// <summary>Monotonic counter bumped on every rescan, for cheap change detection.</summary>
         public static int Revision { get; private set; }
 
