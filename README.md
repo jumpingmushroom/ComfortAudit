@@ -30,6 +30,16 @@ nothing at all.
 
 ![Placement preview](docs/images/preview.png)
 
+## Install
+
+[![Thunderstore](https://img.shields.io/badge/Thunderstore-Jumpingmushroom--ComfortAudit-1f9bd1)](https://thunderstore.io/c/valheim/p/Jumpingmushroom/ComfortAudit/)
+
+Install through a mod manager (r2modman, Gale, Thunderstore Mod Manager) from the
+[Thunderstore page](https://thunderstore.io/c/valheim/p/Jumpingmushroom/ComfortAudit/), or manually
+by dropping `ComfortAudit.dll` into `BepInEx/plugins/`.
+
+Requires BepInEx 5 and [Jotunn](https://thunderstore.io/c/valheim/p/ValheimModding/Jotunn/).
+
 ## What it does
 
 Press **F7** for a panel covering:
@@ -75,8 +85,6 @@ label), and that one is disableable in config.
 
 Pieces added by other mods are picked up automatically from the live prefab list. Comfort groups
 outside the vanilla enum render as "Other" rather than crashing.
-
-Requires [Jotunn](https://thunderstore.io/c/valheim/p/ValheimModding/Jotunn/).
 
 ## Configuration
 
