@@ -135,9 +135,22 @@ Helper scripts:
 ```bash
 ./build/deploy.sh     # build and copy to a local or remote BepInEx profile
 ./build/package.sh    # validate and assemble the Thunderstore zip into dist/
+./build/publish.sh    # publish that zip to Thunderstore via tcli
 ./build/logs.sh       # tail the remote BepInEx log
+./build/shot.sh       # capture the Valheim window from the dev machine
 ./build/make_icon.py  # regenerate the Thunderstore icon
 ```
+
+Publishing needs the Thunderstore CLI (`dotnet tool install -g tcli`) and a service account
+token from your Thunderstore team settings:
+
+```bash
+TS_TEAM=<team> TCLI_AUTH_TOKEN=<token> ./build/publish.sh
+./build/publish.sh --dry-run   # build and generate config without uploading
+```
+
+`thunderstore.toml` is generated from `thunderstore/manifest.json` at publish time and is
+gitignored, so the manifest stays the single source of truth for version and dependencies.
 
 ## Licence
 
