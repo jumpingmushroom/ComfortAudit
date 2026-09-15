@@ -10,6 +10,26 @@ Built and verified against **Valheim 1.0.12** (Deep North).
 
 ---
 
+## Screenshots
+
+**The panel.** What is in range, what each piece contributes, and the cheapest way up.
+
+![Comfort Audit panel](docs/images/panel.png)
+
+**Shelter is a gate, not a bonus.** Step outside and comfort collapses to 1 — the furniture stops
+counting entirely, not partially. Building a roof here is worth +4.
+
+![Unsheltered](docs/images/unsheltered.png)
+
+**Pieces that are doing nothing.** The stool loses its group to the chair, so removing it costs you
+nothing at all.
+
+![Ignored pieces](docs/images/ignored.png)
+
+**Placement preview.** While building, what the held piece would add if placed where the ghost is.
+
+![Placement preview](docs/images/preview.png)
+
 ## What it does
 
 Press **F7** for a panel covering:

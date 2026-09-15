@@ -16,6 +16,26 @@ It also explains why you are not Rested. The game requires seven separate condit
 none of them; Comfort Audit lists each one, so "near a fire, under a roof, still not resting"
 resolves to *wet*, *spotted*, or *cold* instead of a mystery.
 
+## Screenshots
+
+**The panel.** What is in range, what each piece contributes, and the cheapest way up.
+
+![Comfort Audit panel](https://raw.githubusercontent.com/jumpingmushroom/ComfortAudit/v0.4.2/docs/images/panel.png)
+
+**Shelter is a gate, not a bonus.** Step outside and comfort collapses to 1 — the furniture stops
+counting entirely, not partially. Building a roof here is worth +4.
+
+![Unsheltered](https://raw.githubusercontent.com/jumpingmushroom/ComfortAudit/v0.4.2/docs/images/unsheltered.png)
+
+**Pieces that are doing nothing.** The stool loses its group to the chair, so removing it costs you
+nothing at all.
+
+![Ignored pieces](https://raw.githubusercontent.com/jumpingmushroom/ComfortAudit/v0.4.2/docs/images/ignored.png)
+
+**Placement preview.** While building, what the held piece would add if placed where the ghost is.
+
+![Placement preview](https://raw.githubusercontent.com/jumpingmushroom/ComfortAudit/v0.4.2/docs/images/preview.png)
+
 ## Two things worth knowing
 
 **Shelter is not a bonus, it is a gate.** Unsheltered, your comfort is 1 and *no furniture counts
