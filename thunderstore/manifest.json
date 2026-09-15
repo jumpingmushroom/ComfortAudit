@@ -1,0 +1,10 @@
+{
+  "name": "ComfortAudit",
+  "version_number": "0.4.0",
+  "website_url": "",
+  "description": "Shows exactly which furniture feeds your Comfort level, what is being ignored, and why you are not Rested.",
+  "dependencies": [
+    "denikson-BepInExPack_Valheim-5.4.2350",
+    "ValheimModding-Jotunn-2.30.0"
+  ]
+}
