@@ -77,6 +77,8 @@ namespace ComfortAudit.Core
                     entry.ShadowedBy = snap.Pieces[o.ShadowedBySource].DisplayName;
             }
 
+            AnalyseHypotheticals(snap);
+
             snap.ComfortLevel = total;
             snap.VanillaComfortLevel = player.GetComfortLevel();
 
@@ -120,6 +122,45 @@ namespace ComfortAudit.Core
         {
             LastComfort = -1;
             LastChangeTime = Time.time;
+        }
+
+        private static readonly Dictionary<string, int> RemovalMemo = new Dictionary<string, int>();
+
+        /// <summary>
+        /// What lighting each unlit piece, and removing each ignored one, would do to sheltered
+        /// comfort — by running the walk, since the adjacency rules make shortcuts wrong. Removal
+        /// is memoised on (group, comfort, name): identical pieces are interchangeable in the
+        /// walk, so a hall of forty identical chairs costs one walk, not forty.
+        /// </summary>
+        private static void AnalyseHypotheticals(ComfortSnapshot snap)
+        {
+            int sheltered = ComfortWalk.Total(Items);
+            RemovalMemo.Clear();
+
+            for (int i = 0; i < Items.Count; i++)
+            {
+                ComfortWalk.Item item = Items[i];
+                if (item.Source < 0 || item.Source >= snap.Pieces.Count)
+                    continue;
+
+                PieceEntry entry = snap.Pieces[item.Source];
+
+                if (entry.Inactive)
+                    entry.LightGain = Mathf.Max(0,
+                        ComfortWalk.TotalWithComfort(Items, i, entry.RawComfort) - sheltered);
+
+                if (entry.Status == PieceStatus.Counted)
+                    continue;
+
+                string key = (int)item.Group + "|" + item.Comfort + "|" + item.NameToken;
+                int without;
+                if (!RemovalMemo.TryGetValue(key, out without))
+                {
+                    without = ComfortWalk.TotalWithout(Items, i);
+                    RemovalMemo[key] = without;
+                }
+                entry.RemovalLoss = Mathf.Max(0, sheltered - without);
+            }
         }
 
         private static void ComputeMissingGroups(ComfortSnapshot snap)

@@ -1,6 +1,6 @@
 {
   "name": "ComfortAudit",
-  "version_number": "0.4.3",
+  "version_number": "0.4.4",
   "website_url": "https://github.com/jumpingmushroom/ComfortAudit",
   "description": "Shows exactly which furniture feeds your Comfort level, what is being ignored, and why you are not Rested.",
   "dependencies": [

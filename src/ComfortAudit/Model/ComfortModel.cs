@@ -49,6 +49,19 @@ namespace ComfortAudit.Model
         /// <summary>Display name of the piece that shadowed this one, when shadowed.</summary>
         public string ShadowedBy;
 
+        /// <summary>
+        /// Sheltered comfort gained by lighting this piece, when Inactive. Not RawComfort: a lit
+        /// hearth only adds what it beats the group's current winner by.
+        /// </summary>
+        public int LightGain;
+
+        /// <summary>
+        /// Sheltered comfort lost if this piece were removed. Usually 0 for an ignored piece, but
+        /// not always: one can matter only because it keeps two equal names from being adjacent
+        /// in the game's sorted list.
+        /// </summary>
+        public int RemovalLoss;
+
         public float Distance;
         public Sprite Icon;
 

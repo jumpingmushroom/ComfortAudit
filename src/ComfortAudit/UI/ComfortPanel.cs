@@ -577,7 +577,9 @@ namespace ComfortAudit.UI
 
                 if (e.Inactive)
                 {
-                    sb.Append("  ").Append(Bad(Strings.Get("$comfortaudit_unlit_hint", e.RawComfort)));
+                    sb.Append("  ").Append(e.LightGain > 0
+                        ? Bad(Strings.Get("$comfortaudit_unlit_hint", e.LightGain))
+                        : Bad(Strings.Get("$comfortaudit_unlit")));
                 }
                 else if (sheltered)
                 {
@@ -626,7 +628,16 @@ namespace ComfortAudit.UI
                     ? Strings.Get("$comfortaudit_beaten_by", e.ShadowedBy)
                     : Strings.Get("$comfortaudit_dupe_of", e.ShadowedBy));
 
-                sb.Append(" — ").Append(Strings.Get("$comfortaudit_safe_to_remove"));
+                // Only claim "safe to remove" when the walk says so. An unlit piece beaten by a
+                // lit one is the next thing to light, not clutter; and a piece can matter solely
+                // by keeping two equal names apart in the game's sorted list.
+                sb.Append(" — ");
+                if (e.Inactive && e.LightGain > 0)
+                    sb.Append(Reset).Append(Good(Strings.Get("$comfortaudit_unlit_hint", e.LightGain))).Append(Dim);
+                else if (e.RemovalLoss > 0)
+                    sb.Append(Strings.Get("$comfortaudit_keep_removal_costs", e.RemovalLoss));
+                else
+                    sb.Append(Strings.Get("$comfortaudit_safe_to_remove"));
                 AppendSuffix(sb, e);
                 sb.Append(Reset).Append('\n');
             }
@@ -677,7 +688,16 @@ namespace ComfortAudit.UI
                 return;
             }
 
-            if (st.NoGain > 0)
+            // "You have the best" is only true when nothing better was filtered out. NoGain > 0
+            // alone proves one candidate was no improvement, not that every one was: a better
+            // chair waiting on a station or materials lands in those tallies instead.
+            bool filteredOut = st.StationOutOfRange > 0 || st.MaterialsShort > 0;
+            if (filteredOut)
+            {
+                sb.Append(Dim).Append("  ").Append(Strings.Get("$comfortaudit_rec_none_filtered"))
+                  .Append(Reset).Append('\n');
+            }
+            else if (st.NoGain > 0)
             {
                 sb.Append("  ").Append(Good(Strings.Get("$comfortaudit_rec_none_best"))).Append('\n');
             }

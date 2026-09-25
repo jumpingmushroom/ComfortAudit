@@ -103,6 +103,55 @@ namespace ComfortAudit.Core
             return total;
         }
 
+        // ---- hypotheticals -------------------------------------------------
+        //
+        // The game's dedup is adjacency on a sorted list, so "what if this piece were added,
+        // removed or lit" cannot be answered with per-group maxima or a set of names: a piece can
+        // matter only because it separates two equal names. These answer it by running the real
+        // walk on a copy. All assume shelter, since that is the state the advice is about.
+
+        private static readonly List<Item> Scratch = new List<Item>(256);
+
+        /// <summary>Sheltered comfort for <paramref name="items"/>, leaving the list untouched.</summary>
+        public static int Total(List<Item> items)
+        {
+            Scratch.Clear();
+            Scratch.AddRange(items);
+            return Run(Scratch, true);
+        }
+
+        /// <summary>Sheltered comfort with <paramref name="extra"/> placed alongside the items.</summary>
+        public static int TotalWith(List<Item> items, Item extra)
+        {
+            Scratch.Clear();
+            Scratch.AddRange(items);
+            Scratch.Add(extra);
+            return Run(Scratch, true);
+        }
+
+        /// <summary>Sheltered comfort with the item at <paramref name="index"/> removed.</summary>
+        public static int TotalWithout(List<Item> items, int index)
+        {
+            Scratch.Clear();
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (i != index)
+                    Scratch.Add(items[i]);
+            }
+            return Run(Scratch, true);
+        }
+
+        /// <summary>Sheltered comfort with the item at <paramref name="index"/> worth <paramref name="comfort"/>.</summary>
+        public static int TotalWithComfort(List<Item> items, int index, int comfort)
+        {
+            Scratch.Clear();
+            Scratch.AddRange(items);
+            Item changed = Scratch[index];
+            changed.Comfort = comfort;
+            Scratch[index] = changed;
+            return Run(Scratch, true);
+        }
+
         private static void ReportOnly(List<Item> items, List<Outcome> outcomes)
         {
             items.Sort(Sort);

@@ -78,5 +78,7 @@
   "comfortaudit_preview_outofrange": "{0}: {1:0.0} m away — outside the {2} m radius",
   "comfortaudit_preview_noshelter": "no gain without a roof",
   "comfortaudit_rec_stacking": "stacks — adds on top of what you have",
-  "comfortaudit_have": "(have {0})"
+  "comfortaudit_have": "(have {0})",
+  "comfortaudit_keep_removal_costs": "keep — removing it costs {0}",
+  "comfortaudit_rec_none_filtered": "Better pieces are known, but none can be built here right now."
 }

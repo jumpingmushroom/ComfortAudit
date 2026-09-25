@@ -26,10 +26,9 @@ namespace ComfortAudit.Core
             var stats = new RecommendationStats { Catalogue = catalog.Count };
             snap.RecStats = stats;
 
-            // What each group currently contributes, and which display names are already counted
-            // (None-group pieces stack, so they are deduplicated by name rather than by group).
+            // Which groups are filled, and by what — for labelling a candidate as an upgrade or
+            // a new group. Gains themselves come from the walk, not from these.
             var counted = new Dictionary<Piece.ComfortGroup, int>();
-            var countedNames = new HashSet<string>();
             var winners = new Dictionary<Piece.ComfortGroup, string>();
 
             for (int i = 0; i < snap.Pieces.Count; i++)
@@ -37,8 +36,6 @@ namespace ComfortAudit.Core
                 PieceEntry e = snap.Pieces[i];
                 if (!e.Contributing)
                     continue;
-
-                countedNames.Add(e.NameToken);
 
                 int existing;
                 if (!counted.TryGetValue(e.Group, out existing) || e.Comfort > existing)
@@ -61,8 +58,25 @@ namespace ComfortAudit.Core
                 return;
             }
 
-            AddFreeGains(snap, results, counted, countedNames);
-            AddPieceUpgrades(snap, player, catalog, results, counted, countedNames, winners, stats);
+            // The pieces in range as walk input, so every candidate's gain is the game's own
+            // algorithm run with it added — the adjacency dedup makes per-group maxima and a set
+            // of counted names wrong whenever equal names are involved.
+            BaseItems.Clear();
+            for (int i = 0; i < snap.Pieces.Count; i++)
+            {
+                PieceEntry e = snap.Pieces[i];
+                BaseItems.Add(new ComfortWalk.Item
+                {
+                    Group = e.Group,
+                    Comfort = e.Comfort,
+                    NameToken = e.NameToken,
+                    Source = i
+                });
+            }
+            int baseline = ComfortWalk.Total(BaseItems);
+
+            AddFreeGains(snap, results);
+            AddPieceUpgrades(snap, player, catalog, results, counted, winners, stats, baseline);
 
             results.Sort(Compare);
 
@@ -73,12 +87,14 @@ namespace ComfortAudit.Core
             snap.Recommendations = results;
         }
 
+        private static readonly List<ComfortWalk.Item> BaseItems = new List<ComfortWalk.Item>(128);
+
         /// <summary>
         /// Pieces already placed but switched off. GetComfort() returns 0 for them, so they cost
-        /// nothing to "build" — you just light them.
+        /// nothing to "build" — you just light them. The gain is the scanner's walk with the piece
+        /// lit, so it is what lighting actually adds, not the piece's designed value.
         /// </summary>
-        private static void AddFreeGains(ComfortSnapshot snap, List<Recommendation> results,
-            Dictionary<Piece.ComfortGroup, int> counted, HashSet<string> countedNames)
+        private static void AddFreeGains(ComfortSnapshot snap, List<Recommendation> results)
         {
             var seen = new HashSet<string>();
 
@@ -88,11 +104,13 @@ namespace ComfortAudit.Core
                 if (!e.Inactive || e.RawComfort <= 0)
                     continue;
 
-                if (!seen.Add(e.DisplayName))
+                int gain = e.LightGain;
+                if (gain <= 0)
                     continue;
 
-                int gain = GainFor(e.Group, e.RawComfort, e.NameToken, counted, countedNames);
-                if (gain <= 0)
+                // Keyed on the raw token, checked after the gain: two unlit copies of one piece
+                // are one suggestion, but a gainless piece must not hide a useful namesake.
+                if (!seen.Add(e.NameToken ?? e.DisplayName))
                     continue;
 
                 results.Add(new Recommendation
@@ -138,8 +156,8 @@ namespace ComfortAudit.Core
 
         private static void AddPieceUpgrades(ComfortSnapshot snap, Player player,
             List<PieceCatalog.Entry> catalog, List<Recommendation> results,
-            Dictionary<Piece.ComfortGroup, int> counted, HashSet<string> countedNames,
-            Dictionary<Piece.ComfortGroup, string> winners, RecommendationStats stats)
+            Dictionary<Piece.ComfortGroup, int> counted,
+            Dictionary<Piece.ComfortGroup, string> winners, RecommendationStats stats, int baseline)
         {
             // Only the best candidate per group is worth showing; five ways to fix the Chair
             // group is noise, not advice.
@@ -159,7 +177,13 @@ namespace ComfortAudit.Core
                     continue;
                 }
 
-                int gain = GainFor(c.Group, c.Comfort, c.NameToken, counted, countedNames);
+                int gain = ComfortWalk.TotalWith(BaseItems, new ComfortWalk.Item
+                {
+                    Group = c.Group,
+                    Comfort = c.Comfort,
+                    NameToken = c.NameToken,
+                    Source = -1
+                }) - baseline;
                 if (gain <= 0)
                 {
                     stats.NoGain++;
@@ -228,23 +252,6 @@ namespace ComfortAudit.Core
             bestUngrouped.Sort(Compare);
             for (int i = 0; i < bestUngrouped.Count && i < 3; i++)
                 results.Add(bestUngrouped[i]);
-        }
-
-        /// <summary>
-        /// Grouped pieces must beat the incumbent, so they are worth the difference. Ungrouped
-        /// pieces stack, so they are worth their full value unless that exact name already counts.
-        /// </summary>
-        private static int GainFor(Piece.ComfortGroup group, int comfort, string nameToken,
-            Dictionary<Piece.ComfortGroup, int> counted, HashSet<string> countedNames)
-        {
-            // Deduplicate on the raw token: the game's duplicate-name clause compares m_name, and
-            // two distinct tokens can localize to the same string (or fail to localize at all).
-            if (ComfortGroups.Stacks(group))
-                return countedNames.Contains(nameToken) ? 0 : comfort;
-
-            int current;
-            counted.TryGetValue(group, out current);
-            return Mathf.Max(0, comfort - current);
         }
 
         private static bool StationInRange(Player player, PieceCatalog.Entry c)

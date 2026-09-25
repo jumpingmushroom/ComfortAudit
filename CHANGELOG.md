@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.4.4 — honest advice
+
+Three fixes from a second code review, all about the panel telling you something untrue.
+
+- Fixed: an unlit piece beaten by a lit one — an unlit hearth next to a burning campfire — was
+  listed as "safe to remove" while the suggestions said to light it. Unlit pieces now show what
+  lighting them would add, and the "light it" gain is what lighting really adds rather than the
+  piece's designed value.
+- Fixed: "safe to remove" was printed for every ignored piece. The game deduplicates by comparing
+  neighbours in a sorted list, so a piece can matter only because it keeps two identical names
+  apart. Each ignored piece is now checked by re-running the calculation without it, and one that
+  matters reads "keep — removing it costs N".
+- Fixed: suggestion gains were estimated from per-group maxima and a set of counted names, which
+  goes wrong whenever equal names are involved (mostly modded pieces). Each candidate's gain is now
+  the game's own calculation run with that piece added.
+- Fixed: with no suggestions, the panel said "you have the best of every comfort group you've
+  unlocked" even when a better piece was known but filtered out for want of a station or materials.
+  It now says better pieces are known but cannot be built here right now.
+
 ## 0.4.3 — review fixes
 
 Eight fixes from a full code review, all in the mod itself.
