@@ -10,8 +10,9 @@ using UnityEngine.UI;
 namespace ComfortAudit.UI
 {
     /// <summary>
-    /// A single Jotunn woodpanel holding one rich-text block. Jotunn supplies the panel art,
-    /// the Valheim TMP font and dragging, so there is no style harvesting to break on a patch.
+    /// A single Jotunn woodpanel holding one rich-text block. Jotunn supplies the panel art and
+    /// the Valheim TMP font, so there is no style harvesting to break on a patch. Dragging,
+    /// scrolling and scaling are ours, in PanelInput.
     /// </summary>
     public sealed class ComfortPanel
     {
@@ -26,7 +27,22 @@ namespace ComfortAudit.UI
         private GameObject _panel;
         private RectTransform _panelRect;
         private RectTransform _bodyRect;
+        private RectTransform _thumbRect;
         private TextMeshProUGUI _body;
+
+        /// <summary>
+        /// Scroll state, in unscaled panel units. The text is laid out once at full height inside
+        /// a clipping viewport; scrolling only moves it, so the wheel never rebuilds the text.
+        /// </summary>
+        private float _scroll;
+        private float _contentHeight;
+        private float _viewportHeight;
+
+        /// <summary>Content units moved per wheel notch: about two lines of body text.</summary>
+        private const float ScrollStep = 40f;
+
+        private const float ScaleStep = 0.05f;
+
         private string _lastText;
 
         /// <summary>
@@ -62,21 +78,18 @@ namespace ComfortAudit.UI
                 PluginConfig.PanelPosition.Value,
                 width,
                 200f,
-                true);                  // draggable, free from Jotunn
+                false);                 // our own PanelInput drags; Jotunn's assumes a centre pivot
 
             _panel.name = "ComfortAuditPanel";
             _panelRect = _panel.GetComponent<RectTransform>();
+            _panel.AddComponent<PanelInput>().Owner = this;
 
             // CreateWoodpanel sets the anchors but leaves the pivot at DefaultControls.CreatePanel's
             // (0.5, 0.5). With a top-left anchor that makes anchoredPosition the panel's *centre*,
             // so a small offset pushes the top-left half off-screen. Pin the pivot to the top-left
-            // corner so the position means what the config says it means.
+            // corner so the position means what the config says it means — and so scaling grows
+            // the panel away from that corner rather than out of its middle.
             _panelRect.pivot = new Vector2(0f, 1f);
-
-            // The panel's height is capped to the canvas in Render. Anything past the cap is
-            // clipped at the frame instead of drawing over the HUD below it.
-            if (_panel.GetComponent<RectMask2D>() == null)
-                _panel.AddComponent<RectMask2D>();
 
             // The woodpanel is a busy mid-brown texture; coloured text on it reads poorly no
             // matter which hues we pick. A translucent dark plate inset inside the panel gives
@@ -94,16 +107,42 @@ namespace ComfortAudit.UI
             backdrop.color = new Color(0.04f, 0.03f, 0.02f, 0.82f);
             backdrop.raycastTarget = false;   // let drags fall through to the panel
 
+            // The panel's height is capped to the canvas in Render. The text scrolls inside this
+            // viewport, and anything outside it is clipped instead of drawing over the frame.
+            var viewportGo = new GameObject("Viewport", typeof(RectTransform), typeof(RectMask2D));
+            viewportGo.transform.SetParent(_panel.transform, false);
+
+            var viewportRect = viewportGo.GetComponent<RectTransform>();
+            viewportRect.anchorMin = Vector2.zero;
+            viewportRect.anchorMax = Vector2.one;
+            viewportRect.offsetMin = new Vector2(Padding, Padding);
+            viewportRect.offsetMax = new Vector2(-Padding, -Padding);
+
             // Added after the backdrop, so it draws on top of it.
             var textGo = new GameObject("Body", typeof(RectTransform), typeof(TextMeshProUGUI));
-            textGo.transform.SetParent(_panel.transform, false);
+            textGo.transform.SetParent(viewportGo.transform, false);
 
             RectTransform rect = _bodyRect = textGo.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(0f, 1f);
             rect.anchorMax = new Vector2(0f, 1f);
             rect.pivot = new Vector2(0f, 1f);
-            rect.anchoredPosition = new Vector2(Padding, -Padding);
+            rect.anchoredPosition = Vector2.zero;
             rect.sizeDelta = new Vector2(width - Padding * 2f, 0f);
+
+            // A thin scroll indicator in the right-hand padding, shown only when the text
+            // overflows. Display only: the wheel scrolls, and drags still move the panel.
+            var thumbGo = new GameObject("ScrollThumb", typeof(RectTransform), typeof(Image));
+            thumbGo.transform.SetParent(_panel.transform, false);
+
+            _thumbRect = thumbGo.GetComponent<RectTransform>();
+            _thumbRect.anchorMin = new Vector2(1f, 1f);
+            _thumbRect.anchorMax = new Vector2(1f, 1f);
+            _thumbRect.pivot = new Vector2(1f, 1f);
+
+            var thumb = thumbGo.GetComponent<Image>();
+            thumb.color = new Color(0.95f, 0.91f, 0.85f, 0.45f);
+            thumb.raycastTarget = false;
+            thumbGo.SetActive(false);
 
             _body = textGo.GetComponent<TextMeshProUGUI>();
             _body.font = GUIManager.Instance.TMP_Norse;
@@ -141,11 +180,12 @@ namespace ComfortAudit.UI
 
             float width = PluginConfig.PanelWidth.Value;
             _panelRect.sizeDelta = new Vector2(width, _panelRect.sizeDelta.y);
+            _panelRect.localScale = new Vector3(Scale, Scale, 1f);
 
             if (_bodyRect != null)
-                _bodyRect.sizeDelta = new Vector2(width - Padding * 2f, 0f);
+                _bodyRect.sizeDelta = new Vector2(width - Padding * 2f, _bodyRect.sizeDelta.y);
 
-            _panelRect.anchoredPosition = ClampToCanvas(PluginConfig.PanelPosition.Value, width);
+            _panelRect.anchoredPosition = ClampToCanvas(PluginConfig.PanelPosition.Value);
             _lastSeenPosition = _panelRect.anchoredPosition;
             _positionSettleAt = 0f;
 
@@ -168,19 +208,80 @@ namespace ComfortAudit.UI
             return new Vector2(Screen.width, Screen.height);
         }
 
-        /// <summary>
-        /// Keep a usable amount of the panel reachable. Without this, a saved position from a
-        /// wider monitor (or a resolution change) can strand the panel off-screen with no way
-        /// back except editing the config by hand.
-        /// </summary>
-        private Vector2 ClampToCanvas(Vector2 pos, float width)
+        private static float Scale => PluginConfig.PanelScale.Value;
+
+        /// <summary>The panel's size as drawn: sizeDelta is in its own, unscaled units.</summary>
+        private Vector2 ScaledSize()
         {
-            const float margin = 60f;
+            return _panelRect.sizeDelta * Scale;
+        }
+
+        /// <summary>
+        /// Keep the whole panel on the canvas. Without this, a saved position from a wider
+        /// monitor (or a resolution change) can strand the panel off-screen with no way back
+        /// except editing the config by hand; and a drag that hides the bottom would hide the
+        /// end of the list, which is the part scrolling exists to reach.
+        /// </summary>
+        private Vector2 ClampToCanvas(Vector2 pos)
+        {
             Vector2 canvas = CanvasSize();
+            Vector2 size = ScaledSize();
 
             return new Vector2(
-                Mathf.Clamp(pos.x, margin - width, Mathf.Max(margin - width, canvas.x - margin)),
-                Mathf.Clamp(pos.y, -Mathf.Max(0f, canvas.y - margin), 0f));
+                Mathf.Clamp(pos.x, 0f, Mathf.Max(0f, canvas.x - size.x)),
+                Mathf.Clamp(pos.y, -Mathf.Max(0f, canvas.y - size.y), 0f));
+        }
+
+        /// <summary>Called by PanelInput for each frame of a drag.</summary>
+        internal void DragTo(Vector2 pos)
+        {
+            if (_panelRect != null)
+                _panelRect.anchoredPosition = ClampToCanvas(pos);
+        }
+
+        /// <summary>Called by PanelInput for the mouse wheel. Positive notches scroll up.</summary>
+        internal void ScrollBy(float notches)
+        {
+            _scroll -= notches * ScrollStep;
+            ApplyScroll();
+        }
+
+        /// <summary>Called by PanelInput for Ctrl+wheel. Saved like any other config edit.</summary>
+        internal void ScaleBy(float notches)
+        {
+            float next = Mathf.Round((Scale + Mathf.Sign(notches) * ScaleStep) / ScaleStep) * ScaleStep;
+            next = Mathf.Clamp(next, PluginConfig.MinScale, PluginConfig.MaxScale);
+            if (Mathf.Approximately(next, Scale))
+                return;
+
+            // ApplyLayout re-reads the position from config. A drag that has not settled yet
+            // would otherwise snap back to where the panel was before it.
+            PersistPosition(_panelRect.anchoredPosition);
+            PluginConfig.PanelScale.Value = next;
+        }
+
+        /// <summary>Clamp the scroll offset to the content and move the text and thumb to match.</summary>
+        private void ApplyScroll()
+        {
+            if (_bodyRect == null)
+                return;
+
+            float max = Mathf.Max(0f, _contentHeight - _viewportHeight);
+            _scroll = Mathf.Clamp(_scroll, 0f, max);
+            _bodyRect.anchoredPosition = new Vector2(0f, _scroll);
+
+            if (_thumbRect == null)
+                return;
+
+            bool overflow = max > 0.5f;
+            _thumbRect.gameObject.SetActive(overflow);
+            if (!overflow)
+                return;
+
+            float thumbHeight = Mathf.Max(24f, _viewportHeight * _viewportHeight / _contentHeight);
+            float travel = _viewportHeight - thumbHeight;
+            _thumbRect.sizeDelta = new Vector2(4f, thumbHeight);
+            _thumbRect.anchoredPosition = new Vector2(-11f, -Padding - travel * (_scroll / max));
         }
 
         /// <summary>
@@ -193,7 +294,7 @@ namespace ComfortAudit.UI
                 return;
 
             Vector2 canvas = CanvasSize();
-            Vector2 size = _panelRect.sizeDelta;
+            Vector2 size = ScaledSize();
 
             var centred = new Vector2(
                 Mathf.Round((canvas.x - size.x) * 0.5f),
@@ -234,7 +335,14 @@ namespace ComfortAudit.UI
             if (_positionSettleAt <= 0f || Time.unscaledTime < _positionSettleAt)
                 return;
 
+            PersistPosition(current);
+        }
+
+        /// <summary>Write a position the panel already has to config, without re-applying it.</summary>
+        private void PersistPosition(Vector2 current)
+        {
             _positionSettleAt = 0f;
+            _lastSeenPosition = current;
 
             if (current != PluginConfig.PanelPosition.Value)
             {
@@ -269,6 +377,7 @@ namespace ComfortAudit.UI
             _panel = null;
             _panelRect = null;
             _bodyRect = null;
+            _thumbRect = null;
             _body = null;
             _lastText = null;
             IsOpen = false;
@@ -340,11 +449,19 @@ namespace ComfortAudit.UI
             float h = _body.GetPreferredValues(text, width - Padding * 2f, 0f).y;
             if (_panelRect != null)
             {
+                // The body gets its full laid-out height: RectMask2D culls by rect, and a
+                // zero-height rect scrolled above the viewport would cull all of the text.
+                _contentHeight = h + BottomSlack;
+                _bodyRect.sizeDelta = new Vector2(width - Padding * 2f, _contentHeight);
+
                 // Never taller than the canvas: a hall full of duplicate chairs used to grow the
                 // panel past the bottom of the screen with the recommendations on the far side.
+                // The rest is reached by scrolling. The cap is in unscaled units, hence / Scale.
                 Vector2 canvas = CanvasSize();
-                float height = Mathf.Min(h + Padding * 2f + BottomSlack, canvas.y - HeightMargin);
+                float height = Mathf.Min(_contentHeight + Padding * 2f, (canvas.y - HeightMargin) / Scale);
                 _panelRect.sizeDelta = new Vector2(width, height);
+                _viewportHeight = height - Padding * 2f;
+                ApplyScroll();
 
                 if (_needsCentre)
                 {
@@ -355,7 +472,7 @@ namespace ComfortAudit.UI
                     // Growing content can push the bottom edge off-screen even when the top is
                     // fine. Nudge the panel up just enough, without treating that as a drag.
                     Vector2 pos = _panelRect.anchoredPosition;
-                    float lowest = Mathf.Min(0f, height - canvas.y);
+                    float lowest = Mathf.Min(0f, height * Scale - canvas.y);
                     if (pos.y < lowest)
                     {
                         pos.y = lowest;

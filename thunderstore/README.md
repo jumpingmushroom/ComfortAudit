@@ -36,6 +36,9 @@ nothing at all.
 
 ![Placement preview](https://raw.githubusercontent.com/jumpingmushroom/ComfortAudit/v0.4.3/docs/images/preview.png)
 
+With the cursor free (inventory open), drag the panel anywhere on screen, scroll a long list with
+the mouse wheel, and Ctrl + wheel to resize it (also `Panel/Scale` in the config).
+
 ## Two things worth knowing
 
 **Shelter is not a bonus, it is a gate.** Unsheltered, your comfort is 1 and *no furniture counts

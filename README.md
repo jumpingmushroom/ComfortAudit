@@ -58,6 +58,9 @@ Press **F7** for a panel covering:
 - **Placement preview** — while building, what the held piece would add if placed where the ghost
   is, and what already beats it if the answer is nothing.
 
+With the cursor free (inventory open), drag the panel anywhere on screen, scroll a long list
+with the mouse wheel, and Ctrl + wheel to resize it.
+
 The Rested status icon also carries `10:00  3/11` — time remaining, current comfort, your ceiling —
 readable at a glance without opening anything.
 
@@ -96,7 +99,8 @@ Through BepInEx config, editable in-game if you run a configuration manager:
 |---|---|---|
 | `ToggleKey` | F7 | Show/hide the panel |
 | `ScanInterval` | 0.5 s | The game itself only recomputes comfort every 2 s |
-| `Position` / `Width` | centred / 420 | `(0,0)` means "centre me"; the panel is also draggable |
+| `Position` / `Width` | centred / 420 | `(0,0)` means "centre me"; drag the panel to move it |
+| `Scale` | 1.0 | Size of the whole panel; Ctrl + mouse wheel over it changes this in game |
 | `ShowCeiling` | on | Reachable comfort, now and with everything unlocked |
 | `ShowPlacementPreview` | on | Build-mode delta |
 | `ShowComfortOnIcon` | on | Comfort on the Rested status icon |

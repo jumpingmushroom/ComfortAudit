@@ -21,6 +21,7 @@ namespace ComfortAudit
         public static ConfigEntry<KeyboardShortcut> ToggleKey;
         public static ConfigEntry<Vector2> PanelPosition;
         public static ConfigEntry<float> PanelWidth;
+        public static ConfigEntry<float> PanelScale;
         public static ConfigEntry<float> ScanInterval;
         public static ConfigEntry<bool> ShowDistances;
         public static ConfigEntry<bool> ShowPrefabNames;
@@ -38,6 +39,9 @@ namespace ComfortAudit
         /// pixel offset of the panel's top-left corner from the top-left of the screen.
         /// </summary>
         public static readonly Vector2 DefaultPosition = Vector2.zero;
+
+        public const float MinScale = 0.5f;
+        public const float MaxScale = 2f;
 
         /// <summary>
         /// Raised when a setting that affects panel layout changes, so ConfigurationManager edits
@@ -79,7 +83,8 @@ namespace ComfortAudit
                 new ConfigDescription(
                     "Panel offset from the top-left of the screen, in pixels, measured to the " +
                     "panel's top-left corner. (0, 0) means 'centre on screen' and is what the " +
-                    "reset button restores. Dragging the panel updates this value.",
+                    "reset button restores. Dragging the panel updates this value. The panel is " +
+                    "always kept fully on screen.",
                     null,
                     Attr(80)));
 
@@ -88,6 +93,13 @@ namespace ComfortAudit
                     "Panel width in pixels.",
                     new AcceptableValueRange<float>(280f, 900f),
                     Attr(70)));
+
+            PanelScale = cfg.Bind("Panel", "Scale", 1f,
+                new ConfigDescription(
+                    "Size of the whole panel, text included. Ctrl + mouse wheel over the panel " +
+                    "changes this in game while the cursor is free (inventory open).",
+                    new AcceptableValueRange<float>(MinScale, MaxScale),
+                    Attr(65)));
 
             // Its own entry rather than replacing the Position editor, so you keep both the
             // numeric fields and a one-click recovery when the panel ends up off-screen after a
@@ -174,6 +186,7 @@ namespace ComfortAudit
 
             PanelPosition.SettingChanged += (s, e) => Raise(LayoutChanged);
             PanelWidth.SettingChanged += (s, e) => Raise(LayoutChanged);
+            PanelScale.SettingChanged += (s, e) => Raise(LayoutChanged);
             ShowDistances.SettingChanged += (s, e) => Raise(ContentChanged);
             Filter.SettingChanged += (s, e) => Raise(ContentChanged);
             MaxRecommendations.SettingChanged += (s, e) => Raise(ContentChanged);

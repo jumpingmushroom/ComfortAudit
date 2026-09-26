@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.5 — a panel you can move
+
+- Fixed: the panel could not be dragged above the middle of the screen, and the taller the list the
+  lower it stuck. Jotunn's drag handler clamps as if the panel were positioned by its centre; ours
+  is positioned by its top-left corner. The panel now has its own drag handling, which keeps the
+  whole panel on screen and nothing more.
+- New: a list longer than the screen scrolls with the mouse wheel, with a thin scroll indicator on
+  the right. Previously everything past the bottom of the screen was cut off.
+- New: `Panel/Scale` (0.5–2.0) sizes the whole panel, text included. Ctrl + mouse wheel over the
+  panel changes it in game.
+
 ## 0.4.4 — honest advice
 
 Three fixes from a second code review, all about the panel telling you something untrue.
