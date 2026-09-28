@@ -54,7 +54,7 @@ Press **F7** for a panel covering:
 - **Ceiling** — the highest comfort reachable here with your current recipes, and with everything
   unlocked, each with the Rested duration it buys.
 - **Next upgrade** — ranked by comfort gain, then weighted material cost, with a have/need check
-  against your inventory.
+  against your inventory and nearby chests, carts and ships.
 - **Placement preview** — while building, what the held piece would add if placed where the ghost
   is, and what already beats it if the answer is nothing.
 
@@ -104,10 +104,12 @@ Through BepInEx config, editable in-game if you run a configuration manager:
 | `ShowCeiling` | on | Reachable comfort, now and with everything unlocked |
 | `ShowPlacementPreview` | on | Build-mode delta |
 | `ShowComfortOnIcon` | on | Comfort on the Rested status icon |
+| `ShowIcons` | on | Piece icons beside names in the panel |
 | `Filter` | KnownAndStationInRange | KnownOnly / KnownAndStationInRange / Buildable |
 | `MaxShown` | 5 | Number of suggestions |
 | `MaxIgnoredShown` | 8 | Ignored pieces listed before the rest collapse to a count |
 | `ShowMaterials` | on | Material cost and have/need per suggestion |
+| `ChestRadius` | 20 m (0–50, 0 = off) | Count materials in nearby chests, carts and ships toward suggestions |
 | `ShowDistances`, `ShowPrefabNames` | off | Diagnostics for the piece list |
 
 Material cost weights live in an editable table. Copy
@@ -121,6 +123,7 @@ With `-console` enabled and `devcommands` active:
 ```
 comfortaudit now      live breakdown here and now, also written to the log
 comfortaudit pieces   every comfort piece prefab: group, comfort, cost
+comfortaudit chests   containers counted and why others were skipped
 comfortaudit costs    material tokens in use, and which have no weight configured
 comfortaudit groups   comfort groups and how many pieces each has
 ```

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.0 — icons and chests
+
+- New: piece icons beside every piece in the panel — contributing, ignored, suggestions and the
+  placement preview. `Panel/ShowIcons` turns them off.
+- New: suggestion materials count what is in nearby chests, carts and ships. Enough once the chests
+  are counted reads amber, `4 Fine wood (1 + 6 in chests)`, since vanilla cannot build from a chest.
+  Chests you could not open — warded, or someone else's private chest — and graves are skipped.
+  `Recommendations/ChestRadius` (default 20 m, 0 = off).
+- New: `comfortaudit chests` lists which containers were counted and why others were skipped.
+- Suggestions that are fully covered by carried-plus-chest materials now rank above ones that are
+  not, when otherwise tied.
+
 ## 0.4.5 — a panel you can move
 
 - Fixed: the panel could not be dragged above the middle of the screen, and the taller the list the

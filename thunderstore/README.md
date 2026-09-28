@@ -11,6 +11,11 @@ and what it is actually doing:
 - **Unlit** — fires and lanterns count for zero while switched off, even though they are placed.
   Lighting one is a free gain.
 - **Missing groups** — the groups you have nothing for at all.
+- **Next upgrade** — ranked by comfort gain, then weighted material cost, with a have/need check
+  against your inventory and nearby chests, carts and ships.
+
+Every piece in the panel — contributing, ignored, suggestions and the placement preview — carries
+its build-menu icon (`Panel/ShowIcons` turns them off).
 
 It also explains why you are not Rested. The game requires seven separate conditions and shows
 none of them; Comfort Audit lists each one, so "near a fire, under a roof, still not resting"
