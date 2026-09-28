@@ -10,6 +10,10 @@ namespace ComfortAudit.Core.Pure
     /// </summary>
     public sealed class StockTally
     {
+        /// <summary>
+        /// A shared, permanently-empty instance for the "nothing to report" case. It is mutable
+        /// like any StockTally, but is never added to — treat it as read-only.
+        /// </summary>
         public static readonly StockTally Empty = new StockTally();
 
         private readonly Dictionary<string, int> _counts = new Dictionary<string, int>(StringComparer.Ordinal);

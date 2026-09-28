@@ -393,7 +393,9 @@ namespace ComfortAudit.UI
         /// </summary>
         public void SetSpriteAsset(TMP_SpriteAsset asset)
         {
-            if (_body == null || _body.spriteAsset == asset)
+            // Unity's == treats a destroyed asset as null, which would mask a real reassignment
+            // after IconAtlas rebuilds; compare identity instead.
+            if (_body == null || ReferenceEquals(_body.spriteAsset, asset))
                 return;
 
             _body.spriteAsset = asset;
