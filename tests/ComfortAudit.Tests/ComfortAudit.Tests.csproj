@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Tests the game-independent logic in src/ComfortAudit/Core/Pure by compiling those files
+       directly. Nothing here references Unity or the game, so it runs on plain .NET. The root
+       Directory.Build.props sets net472 for the mod; this project overrides it. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../../src/ComfortAudit/Core/Pure/*.cs" LinkBase="Pure" />
+  </ItemGroup>
+
+</Project>

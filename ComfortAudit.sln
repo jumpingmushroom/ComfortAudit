@@ -7,6 +7,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E4D32C83-970
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComfortAudit", "src\ComfortAudit\ComfortAudit.csproj", "{EFF4531C-B0CA-4FBE-8FE5-84412A78B747}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BACC023A-7E77-42DD-94A3-116B3E5C4601}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComfortAudit.Tests", "tests\ComfortAudit.Tests\ComfortAudit.Tests.csproj", "{382D7E02-546C-43D1-B454-6D87C668170F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,8 +24,13 @@ Global
 		{EFF4531C-B0CA-4FBE-8FE5-84412A78B747}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFF4531C-B0CA-4FBE-8FE5-84412A78B747}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFF4531C-B0CA-4FBE-8FE5-84412A78B747}.Release|Any CPU.Build.0 = Release|Any CPU
+		{382D7E02-546C-43D1-B454-6D87C668170F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{382D7E02-546C-43D1-B454-6D87C668170F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{382D7E02-546C-43D1-B454-6D87C668170F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{382D7E02-546C-43D1-B454-6D87C668170F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{EFF4531C-B0CA-4FBE-8FE5-84412A78B747} = {E4D32C83-970F-480A-81FE-CF2D4692DF48}
+		{382D7E02-546C-43D1-B454-6D87C668170F} = {BACC023A-7E77-42DD-94A3-116B3E5C4601}
 	EndGlobalSection
 EndGlobal
