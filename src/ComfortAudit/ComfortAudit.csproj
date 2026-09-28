@@ -28,7 +28,8 @@
     <Reference Include="UnityEngine.TextRenderingModule"    HintPath="$(ValheimManaged)/UnityEngine.TextRenderingModule.dll" Private="false" />
     <Reference Include="UnityEngine.PhysicsModule"          HintPath="$(ValheimManaged)/UnityEngine.PhysicsModule.dll" Private="false" />
     <Reference Include="UnityEngine.IMGUIModule"           HintPath="$(ValheimManaged)/UnityEngine.IMGUIModule.dll" Private="false" />
-    <Reference Include="Unity.TextMeshPro"                  HintPath="$(ValheimManaged)/Unity.TextMeshPro.dll" Private="false" />
+    <Reference Include="Unity.TextMeshPro"                  HintPath="$(ValheimManaged)/Unity.TextMeshPro.dll" Publicize="true" Private="false" />
+    <Reference Include="UnityEngine.TextCoreFontEngineModule" HintPath="$(ValheimManaged)/UnityEngine.TextCoreFontEngineModule.dll" Private="false" />
 
     <Reference Include="Jotunn"   HintPath="$(JotunnPath)/Jotunn.dll" Private="false" />
     <Reference Include="BepInEx"  HintPath="$(BepInExPath)/BepInEx.dll" Private="false" />

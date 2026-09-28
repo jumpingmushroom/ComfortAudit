@@ -138,12 +138,13 @@ dotnet build src/ComfortAudit/ComfortAudit.csproj -c Release
 ```
 
 Without `VALHEIM_INSTALL` the build falls back to a local `lib/` directory (gitignored). Needed
-there: `assembly_valheim`, `assembly_utils`, `assembly_guiutils`, the `UnityEngine.*` modules,
-`Unity.TextMeshPro`, `Jotunn.dll`, `BepInEx.dll` and `0Harmony.dll`.
+there: `assembly_valheim`, `assembly_utils`, `assembly_guiutils`, the `UnityEngine.*` modules
+(including `UnityEngine.TextCoreFontEngineModule`), `Unity.TextMeshPro`, `Jotunn.dll`, `BepInEx.dll`
+and `0Harmony.dll`.
 
-`assembly_valheim` is publicized at build time via `BepInEx.AssemblyPublicizer.MSBuild`; the shipped
-DLL binds to the real members and runs against an unmodified install, and no publicized derivative
-is ever committed.
+`assembly_valheim` and `Unity.TextMeshPro` are publicized at build time via
+`BepInEx.AssemblyPublicizer.MSBuild`; the shipped DLL binds to the real members and runs against an
+unmodified install, and no publicized derivative is ever committed.
 
 Helper scripts:
 
