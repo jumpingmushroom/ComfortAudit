@@ -80,5 +80,6 @@
   "comfortaudit_rec_stacking": "stacks — adds on top of what you have",
   "comfortaudit_have": "(have {0})",
   "comfortaudit_keep_removal_costs": "keep — removing it costs {0}",
-  "comfortaudit_rec_none_filtered": "Better pieces are known, but none can be built here right now."
+  "comfortaudit_rec_none_filtered": "Better pieces are known, but none can be built here right now.",
+  "comfortaudit_in_chests": "({0} + {1} in chests)"
 }

@@ -123,6 +123,7 @@ namespace ComfortAudit.Core
                     Gain = gain,
                     CostScore = 0f,
                     HaveAllMaterials = true,
+                    HaveAllWithChests = true,
                     StationInRange = true
                 });
             }
@@ -150,6 +151,7 @@ namespace ComfortAudit.Core
                 Gain = gain,
                 CostScore = 0f,
                 HaveAllMaterials = true,
+                HaveAllWithChests = true,
                 StationInRange = true
             });
         }
@@ -268,11 +270,13 @@ namespace ComfortAudit.Core
         private static void FillMaterials(Player player, Piece piece, Recommendation rec)
         {
             rec.HaveAllMaterials = true;
+            rec.HaveAllWithChests = true;
 
             if (piece.m_resources == null)
                 return;
 
             Inventory inv = player.GetInventory();
+            Pure.StockTally chests = ContainerStock.Get(player);
 
             for (int i = 0; i < piece.m_resources.Length; i++)
             {
@@ -282,16 +286,20 @@ namespace ComfortAudit.Core
 
                 string token = PieceCatalog.ItemToken(req);
                 int have = inv != null && token != null ? inv.CountItems(token) : 0;
+                int inChests = chests.Count(token);
 
                 rec.Materials.Add(new MaterialLine
                 {
                     DisplayName = token != null ? Localization.instance.Localize(token) : "?",
                     Amount = req.m_amount,
-                    Have = have
+                    Have = have,
+                    InChests = inChests
                 });
 
                 if (have < req.m_amount)
                     rec.HaveAllMaterials = false;
+                if (have + inChests < req.m_amount)
+                    rec.HaveAllWithChests = false;
             }
         }
 
@@ -315,6 +323,9 @@ namespace ComfortAudit.Core
 
             if (a.HaveAllMaterials != b.HaveAllMaterials)
                 return a.HaveAllMaterials ? -1 : 1;
+
+            if (a.HaveAllWithChests != b.HaveAllWithChests)
+                return a.HaveAllWithChests ? -1 : 1;
 
             if (a.StationInRange != b.StationInRange)
                 return a.StationInRange ? -1 : 1;

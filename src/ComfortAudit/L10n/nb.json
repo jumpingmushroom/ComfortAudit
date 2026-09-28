@@ -80,5 +80,6 @@
   "comfortaudit_rec_stacking": "stabler — legges til det du har",
   "comfortaudit_have": "(har {0})",
   "comfortaudit_keep_removal_costs": "behold — fjerner du den, mister du {0}",
-  "comfortaudit_rec_none_filtered": "Du kjenner bedre møbler, men ingen kan bygges her akkurat nå."
+  "comfortaudit_rec_none_filtered": "Du kjenner bedre møbler, men ingen kan bygges her akkurat nå.",
+  "comfortaudit_in_chests": "({0} + {1} i kister)"
 }

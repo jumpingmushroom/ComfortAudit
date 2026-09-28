@@ -1,5 +1,6 @@
 using System.Text;
 using ComfortAudit.Core;
+using ComfortAudit.Core.Pure;
 using ComfortAudit.L10n;
 using ComfortAudit.Model;
 using Jotunn.Managers;
@@ -504,6 +505,7 @@ namespace ComfortAudit.UI
 
         private static string Good(string s) { return "<color=#9BD97A>" + s + "</color>"; }
         private static string Bad(string s) { return "<color=#FF8A6B>" + s + "</color>"; }
+        private static string Amber(string s) { return "<color=#F2C14E>" + s + "</color>"; }
 
         private string Build(ComfortSnapshot snap)
         {
@@ -879,15 +881,31 @@ namespace ComfortAudit.UI
                 if (i > 0) sb.Append(Dim).Append(", ").Append(Reset);
 
                 string line = m.Amount + " " + m.DisplayName;
-                // Red already conveys "you do not have this"; the count is only informative
-                // when you have some but not enough. Annotating every line with (have 0) was
-                // noise that swamped the material list.
-                if (m.Enough)
-                    sb.Append(Dim).Append(line).Append(Reset);
-                else if (m.Have > 0)
-                    sb.Append(Bad(line + " " + Strings.Get("$comfortaudit_have", m.Have)));
-                else
-                    sb.Append(Bad(line));
+
+                // Counts appear only when they say something: "(have 2)" when some is carried,
+                // "(1 + 6 in chests)" when chests hold some. Annotating every line was noise.
+                switch (MaterialMath.Annotate(m.Amount, m.Have, m.InChests))
+                {
+                    case MaterialAnnotation.Have:
+                        line += " " + Strings.Get("$comfortaudit_have", m.Have);
+                        break;
+                    case MaterialAnnotation.HaveAndChests:
+                        line += " " + Strings.Get("$comfortaudit_in_chests", m.Have, m.InChests);
+                        break;
+                }
+
+                switch (m.State)
+                {
+                    case MaterialState.Enough:
+                        sb.Append(Dim).Append(line).Append(Reset);
+                        break;
+                    case MaterialState.EnoughWithChests:
+                        sb.Append(Amber(line));
+                        break;
+                    default:
+                        sb.Append(Bad(line));
+                        break;
+                }
             }
             sb.Append('\n');
         }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ComfortAudit.Core.Pure;
 using UnityEngine;
 
 namespace ComfortAudit.Model
@@ -126,7 +127,12 @@ namespace ComfortAudit.Model
         public string DisplayName;
         public int Amount;
         public int Have;
+
+        /// <summary>Held in accessible chests and carts nearby, not counting the inventory.</summary>
+        public int InChests;
+
         public bool Enough => Have >= Amount;
+        public MaterialState State => MaterialMath.Classify(Amount, Have, InChests);
     }
 
     public sealed class Recommendation
@@ -142,6 +148,13 @@ namespace ComfortAudit.Model
 
         public List<MaterialLine> Materials = new List<MaterialLine>();
         public bool HaveAllMaterials;
+
+        /// <summary>
+        /// Every material is covered once nearby chests are counted. A tie-break only: building
+        /// needs the materials carried, which HaveAllMaterials already ranks on.
+        /// </summary>
+        public bool HaveAllWithChests;
+
         public bool StationInRange;
 
         /// <summary>Display name of the piece this would replace, when it is an Upgrade.</summary>
