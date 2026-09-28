@@ -5,7 +5,8 @@ using UnityEngine;
 namespace ComfortAudit.Core
 {
     /// <summary>
-    /// Materials in chests and carts near the player, for the have/need check.
+    /// Materials in chests, carts and ships (the vehicle layer covers ship storage) near the
+    /// player, for the have/need check.
     ///
     /// Found with a physics query because the game keeps no registry of containers. Refreshed at
     /// most every two seconds and only when asked — the recommender asks during a scan, and
@@ -17,12 +18,15 @@ namespace ComfortAudit.Core
     public static class ContainerStock
     {
         private const float RefreshSeconds = 2f;
+        private const int InitialCapacity = 256;
+        private const int CapacityCap = 4096;
 
         private static StockTally _tally = StockTally.Empty;
         private static float _stamp = float.NegativeInfinity;
-        private static readonly Collider[] Hits = new Collider[256];
+        private static Collider[] Hits = new Collider[InitialCapacity];
         private static readonly HashSet<Container> Seen = new HashSet<Container>();
         private static int _mask;
+        private static bool _warnedCapacityCap;
 
         /// <summary>One line per container found on the last refresh, for the console.</summary>
         public static readonly List<string> LastReport = new List<string>();
@@ -61,8 +65,19 @@ namespace ComfortAudit.Core
             long playerId = player.GetPlayerID();
 
             int n = Physics.OverlapSphereNonAlloc(origin, radius, Hits, _mask, QueryTriggerInteraction.Collide);
-            if (n == Hits.Length)
+            // A full buffer doesn't mean there were exactly that many colliders — it means there
+            // may have been more. Grow and re-query rather than silently dropping chests, up to a
+            // cap so a pathological scene can't allocate without bound.
+            while (n == Hits.Length && Hits.Length < CapacityCap)
+            {
+                Hits = new Collider[Hits.Length * 2];
+                n = Physics.OverlapSphereNonAlloc(origin, radius, Hits, _mask, QueryTriggerInteraction.Collide);
+            }
+            if (n == Hits.Length && Hits.Length >= CapacityCap && !_warnedCapacityCap)
+            {
+                _warnedCapacityCap = true;
                 ComfortAuditPlugin.Log.LogWarning("chest scan hit its collider cap; some chests may be missed");
+            }
 
             for (int i = 0; i < n; i++)
             {

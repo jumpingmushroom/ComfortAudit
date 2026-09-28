@@ -158,7 +158,7 @@ namespace ComfortAudit
 
             ChestRadius = cfg.Bind("Recommendations", "ChestRadius", 20f,
                 new ConfigDescription(
-                    "Count materials in chests and carts within this many metres when checking " +
+                    "Count materials in chests, carts and ships within this many metres when checking " +
                     "what you have. Chests you could not open (warded, or someone else's private " +
                     "chest) are skipped. Vanilla cannot build straight from a chest, so these " +
                     "are shown apart from what you carry. 0 turns this off.",
