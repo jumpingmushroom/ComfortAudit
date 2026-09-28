@@ -194,6 +194,7 @@ namespace ComfortAudit.Model
         public bool Active;
 
         public string DisplayName;
+        public string PrefabName;
         public Piece.ComfortGroup Group;
         public bool GroupKnown;
 

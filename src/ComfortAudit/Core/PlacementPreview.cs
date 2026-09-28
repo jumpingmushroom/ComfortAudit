@@ -79,6 +79,7 @@ namespace ComfortAudit.Core
 
             result.Active = true;
             result.DisplayName = Names.Display(piece, PrefabName(ghost.name));
+            result.PrefabName = PrefabName(ghost.name);
             result.Group = piece.m_comfortGroup;
             result.GroupKnown = ComfortGroups.IsKnown(piece.m_comfortGroup);
 

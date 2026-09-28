@@ -24,6 +24,7 @@ namespace ComfortAudit
         public static ConfigEntry<float> PanelScale;
         public static ConfigEntry<float> ScanInterval;
         public static ConfigEntry<bool> ShowDistances;
+        public static ConfigEntry<bool> ShowIcons;
         public static ConfigEntry<bool> ShowPrefabNames;
         public static ConfigEntry<bool> Verbose;
         public static ConfigEntry<RecommendationFilter> Filter;
@@ -121,6 +122,12 @@ namespace ComfortAudit
                     null,
                     Attr(50)));
 
+            ShowIcons = cfg.Bind("Panel", "ShowIcons", true,
+                new ConfigDescription(
+                    "Show each piece's build-menu icon beside its name in the panel.",
+                    null,
+                    Attr(52)));
+
             ShowPrefabNames = cfg.Bind("Panel", "ShowPrefabNames", false,
                 new ConfigDescription(
                     "Show prefab names alongside display names. Useful when diagnosing modded pieces.",
@@ -198,6 +205,7 @@ namespace ComfortAudit
             PanelWidth.SettingChanged += (s, e) => Raise(LayoutChanged);
             PanelScale.SettingChanged += (s, e) => Raise(LayoutChanged);
             ShowDistances.SettingChanged += (s, e) => Raise(ContentChanged);
+            ShowIcons.SettingChanged += (s, e) => Raise(ContentChanged);
             Filter.SettingChanged += (s, e) => Raise(ContentChanged);
             MaxRecommendations.SettingChanged += (s, e) => Raise(ContentChanged);
             ShowMaterials.SettingChanged += (s, e) => Raise(ContentChanged);

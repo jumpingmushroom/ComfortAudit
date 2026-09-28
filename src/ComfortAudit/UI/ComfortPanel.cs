@@ -387,6 +387,19 @@ namespace ComfortAudit.UI
 
         private PlacementPreviewResult _preview;
 
+        /// <summary>
+        /// Icon glyphs come from IconAtlas once the catalogue is ready, which is after the panel
+        /// has already rendered, so a change of asset forces a rebuild of the text.
+        /// </summary>
+        public void SetSpriteAsset(TMP_SpriteAsset asset)
+        {
+            if (_body == null || _body.spriteAsset == asset)
+                return;
+
+            _body.spriteAsset = asset;
+            _dirty = true;
+        }
+
         public void SetPreview(PlacementPreviewResult preview)
         {
             // Cheap structural comparison: the preview changes as the ghost moves, and rebuilding
@@ -414,6 +427,7 @@ namespace ComfortAudit.UI
                    && a.InRange == b.InRange
                    && a.NewTotal == b.NewTotal
                    && a.DisplayName == b.DisplayName
+                   && a.PrefabName == b.PrefabName
                    && a.BlockedBy == b.BlockedBy
                    // Shown to one decimal when out of range, so anything under 5 cm is the same text.
                    && Mathf.Abs(a.Distance - b.Distance) < 0.05f;
@@ -601,7 +615,7 @@ namespace ComfortAudit.UI
             if (_preview == null || !_preview.Active)
                 return;
 
-            sb.Append(Orange(Strings.Get("$comfortaudit_preview"))).Append('\n').Append("  ");
+            sb.Append(Orange(Strings.Get("$comfortaudit_preview"))).Append('\n').Append("  ").Append(IconAtlas.Tag(_preview.PrefabName));
 
             if (!_preview.InRange)
             {
@@ -691,7 +705,7 @@ namespace ComfortAudit.UI
                     continue;
 
                 any = true;
-                sb.Append("  ").Append(ComfortGroups.Name(e.Group)).Append(": ")
+                sb.Append("  ").Append(IconAtlas.Tag(e.PrefabName)).Append(ComfortGroups.Name(e.Group)).Append(": ")
                   .Append(e.DisplayName);
 
                 if (e.Inactive)
@@ -740,7 +754,7 @@ namespace ComfortAudit.UI
                 }
                 shown++;
 
-                sb.Append(Dim).Append("  ").Append(ComfortGroups.Name(e.Group)).Append(": ")
+                sb.Append(Dim).Append("  ").Append(IconAtlas.Tag(e.PrefabName)).Append(ComfortGroups.Name(e.Group)).Append(": ")
                   .Append(e.DisplayName).Append("  ");
 
                 sb.Append(e.Status == PieceStatus.ShadowedByGroup
@@ -843,7 +857,7 @@ namespace ComfortAudit.UI
 
         private void AppendRecommendation(StringBuilder sb, Recommendation r)
         {
-            sb.Append("  ").Append(Orange("+" + r.Gain)).Append("  ").Append(r.DisplayName);
+            sb.Append("  ").Append(Orange("+" + r.Gain)).Append("  ").Append(IconAtlas.Tag(r.PrefabName)).Append(r.DisplayName);
 
             if (r.Kind == RecommendationKind.LightIt)
                 sb.Append("  ").Append(Good(Strings.Get("$comfortaudit_rec_light")));

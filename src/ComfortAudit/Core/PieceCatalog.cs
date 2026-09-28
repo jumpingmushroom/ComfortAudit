@@ -152,6 +152,7 @@ namespace ComfortAudit.Core
         {
             _entries = null;
             Ceiling.Invalidate();
+            UI.IconAtlas.Invalidate();
         }
 
         public static List<Entry> Entries()

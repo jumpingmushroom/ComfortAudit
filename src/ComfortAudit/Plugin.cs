@@ -184,6 +184,8 @@ namespace ComfortAudit
             else
                 _panel.SetPreview(null);
 
+            IconAtlas.EnsureBuilt();
+            _panel.SetSpriteAsset(PluginConfig.ShowIcons.Value ? IconAtlas.Primary : null);
             _panel.Render(_snapshot);
         }
 
