@@ -70,6 +70,7 @@ namespace ComfortAudit.UI
             }
 
             var byTexture = new Dictionary<Texture2D, List<KeyValuePair<string, Rect>>>();
+            var seen = new HashSet<string>();
             int skipped = 0;
 
             List<PieceCatalog.Entry> entries = PieceCatalog.Entries();
@@ -78,7 +79,7 @@ namespace ComfortAudit.UI
                 PieceCatalog.Entry e = entries[i];
                 Sprite icon = e.Piece != null ? e.Piece.m_icon : null;
                 string glyph = SpriteTags.GlyphName(e.PrefabName);
-                if (icon == null || icon.texture == null || glyph == null || Glyphs.Contains(glyph))
+                if (icon == null || icon.texture == null || glyph == null || seen.Contains(glyph))
                     continue;
 
                 Rect rect;
@@ -96,11 +97,30 @@ namespace ComfortAudit.UI
                 if (!byTexture.TryGetValue(icon.texture, out list))
                     byTexture[icon.texture] = list = new List<KeyValuePair<string, Rect>>();
                 list.Add(new KeyValuePair<string, Rect>(glyph, rect));
-                Glyphs.Add(glyph);
+                seen.Add(glyph);
             }
 
+            // Names go into Glyphs only once their texture's asset has actually built; otherwise
+            // a failed Build would leave Tag() believing in glyphs no asset holds, rendering the
+            // literal <sprite name="..."> markup instead of the icon.
             foreach (KeyValuePair<Texture2D, List<KeyValuePair<string, Rect>>> kv in byTexture)
-                Assets.Add(Build(kv.Key, kv.Value));
+            {
+                TMP_SpriteAsset asset;
+                try
+                {
+                    asset = Build(kv.Key, kv.Value);
+                }
+                catch (System.Exception ex)
+                {
+                    ComfortAuditPlugin.Log.LogWarning(
+                        "icons: failed to build sprite asset for texture \"" + kv.Key.name + "\": " + ex.Message);
+                    continue;
+                }
+
+                Assets.Add(asset);
+                for (int i = 0; i < kv.Value.Count; i++)
+                    Glyphs.Add(kv.Value[i].Key);
+            }
 
             if (Assets.Count > 1)
                 Assets[0].fallbackSpriteAssets = Assets.GetRange(1, Assets.Count - 1);
@@ -115,7 +135,7 @@ namespace ComfortAudit.UI
             // hashCode is derived lazily from the name by TMP itself; do not assign it.
             asset.name = "ComfortAudit_" + texture.name;
 
-            // Set before the material: an empty version makes UpdateLookupTables "upgrade" the
+            // Must be set before UpdateLookupTables runs: an empty version makes it "upgrade" the
             // asset from its legacy list, clearing the tables built below.
             asset.version = "1.1.0";
             asset.spriteSheet = texture;
