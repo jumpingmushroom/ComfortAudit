@@ -23,7 +23,7 @@ namespace ComfortAudit.Core
             _registered = true;
 
             new Terminal.ConsoleCommand("comfortaudit",
-                "ComfortAudit diagnostics: pieces | costs | groups",
+                "ComfortAudit diagnostics: pieces | costs | groups | now | chests",
                 delegate (Terminal.ConsoleEventArgs args)
                 {
                     string sub = args.Length > 1 ? args[1].ToLowerInvariant() : "help";
@@ -34,11 +34,13 @@ namespace ComfortAudit.Core
                         case "costs": DumpCosts(args.Context); break;
                         case "groups": DumpGroups(args.Context); break;
                         case "now": DumpNow(args.Context); break;
+                        case "chests": DumpChests(args.Context); break;
                         default:
                             args.Context.AddString("comfortaudit pieces  - every comfort piece prefab, group, comfort, cost");
                             args.Context.AddString("comfortaudit costs   - material tokens in use, and which have no weight");
                             args.Context.AddString("comfortaudit groups  - comfort groups and how many pieces each has");
                             args.Context.AddString("comfortaudit now     - live breakdown here and now, also written to the log");
+                            args.Context.AddString("comfortaudit chests  - containers counted for materials, and which were skipped");
                             break;
                     }
                 });
@@ -84,6 +86,31 @@ namespace ComfortAudit.Core
             }
 
             Diagnostics.ReportBreakdown(snap, ComfortAuditPlugin.Log);
+        }
+
+        private static void DumpChests(Terminal ctx)
+        {
+            Player player = Player.m_localPlayer;
+            if (player == null)
+            {
+                ctx.AddString("ComfortAudit: no local player.");
+                return;
+            }
+
+            ContainerStock.Reset();
+            Pure.StockTally tally = ContainerStock.Get(player);
+
+            var lines = new List<string>();
+            lines.Add(string.Format("Chests within {0:0} m: {1} counted", PluginConfig.ChestRadius.Value, tally.Containers));
+            lines.AddRange(ContainerStock.LastReport);
+            foreach (KeyValuePair<string, int> kv in tally.Items)
+                lines.Add(string.Format("  {0,-28} {1}", kv.Key, kv.Value));
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                ctx.AddString(lines[i]);
+                ComfortAuditPlugin.Log.LogInfo(lines[i]);
+            }
         }
 
         private static List<PieceCatalog.Entry> Catalog(Terminal ctx)

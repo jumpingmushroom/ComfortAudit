@@ -101,6 +101,7 @@ namespace ComfortAudit
             PieceCatalog.Invalidate();
             ComfortScanner.ResetHistory();
             Diagnostics.Reset();
+            ContainerStock.Reset();
         }
 
         /// <summary>A new local player: a fresh world, or a respawn into a new instance.</summary>
@@ -112,6 +113,7 @@ namespace ComfortAudit
             PieceCatalog.Invalidate();
             ComfortScanner.ResetHistory();
             Diagnostics.Reset();
+            ContainerStock.Reset();
         }
 
         private void Update()

@@ -30,6 +30,7 @@ namespace ComfortAudit
         public static ConfigEntry<int> MaxRecommendations;
         public static ConfigEntry<int> MaxIgnored;
         public static ConfigEntry<bool> ShowMaterials;
+        public static ConfigEntry<float> ChestRadius;
         public static ConfigEntry<bool> ShowCeiling;
         public static ConfigEntry<bool> ShowComfortOnIcon;
         public static ConfigEntry<bool> ShowPlacementPreview;
@@ -148,6 +149,15 @@ namespace ComfortAudit
                     null,
                     Attr(25)));
 
+            ChestRadius = cfg.Bind("Recommendations", "ChestRadius", 20f,
+                new ConfigDescription(
+                    "Count materials in chests and carts within this many metres when checking " +
+                    "what you have. Chests you could not open (warded, or someone else's private " +
+                    "chest) are skipped. Vanilla cannot build straight from a chest, so these " +
+                    "are shown apart from what you carry. 0 turns this off.",
+                    new AcceptableValueRange<float>(0f, 50f),
+                    Attr(24)));
+
             ShowCeiling = cfg.Bind("Panel", "ShowCeiling", true,
                 new ConfigDescription(
                     "Show the highest comfort reachable at a sheltered spot: what you could " +
@@ -191,6 +201,7 @@ namespace ComfortAudit
             Filter.SettingChanged += (s, e) => Raise(ContentChanged);
             MaxRecommendations.SettingChanged += (s, e) => Raise(ContentChanged);
             ShowMaterials.SettingChanged += (s, e) => Raise(ContentChanged);
+            ChestRadius.SettingChanged += (s, e) => { Core.ContainerStock.Reset(); Raise(ContentChanged); };
             ShowCeiling.SettingChanged += (s, e) => Raise(ContentChanged);
             ShowPlacementPreview.SettingChanged += (s, e) => Raise(ContentChanged);
             ShowPrefabNames.SettingChanged += (s, e) => Raise(ContentChanged);
