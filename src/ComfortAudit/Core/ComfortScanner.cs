@@ -183,11 +183,15 @@ namespace ComfortAudit.Core
         private static PieceEntry Describe(Piece piece, Vector3 from)
         {
             int comfort = piece.GetComfort();
+            // A placed piece is an instantiated copy, so gameObject.name carries Unity's
+            // "(Clone)" suffix; strip it the same way the game does so tags and fallback
+            // display names match the prefab's actual name.
+            string prefabName = piece.gameObject != null ? Utils.GetPrefabName(piece.gameObject) : "?";
 
             return new PieceEntry
             {
-                PrefabName = piece.gameObject != null ? piece.gameObject.name : "?",
-                DisplayName = DisplayName(piece),
+                PrefabName = prefabName,
+                DisplayName = Names.Display(piece, prefabName),
                 NameToken = piece.m_name,
                 Group = piece.m_comfortGroup,
                 GroupKnown = ComfortGroups.IsKnown(piece.m_comfortGroup),
@@ -198,14 +202,6 @@ namespace ComfortAudit.Core
                 Distance = Vector3.Distance(from, piece.transform.position),
                 Icon = piece.m_icon
             };
-        }
-
-        private static string DisplayName(Piece piece)
-        {
-            if (piece == null)
-                return "?";
-
-            return Names.Display(piece, piece.gameObject != null ? piece.gameObject.name : null);
         }
     }
 }

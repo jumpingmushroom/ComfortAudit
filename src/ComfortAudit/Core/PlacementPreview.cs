@@ -158,7 +158,7 @@ namespace ComfortAudit.Core
 
                 int by = o.ShadowedBySource;
                 if (by >= 0 && by < real.Count)
-                    return Names.Display(real[by], real[by].gameObject != null ? real[by].gameObject.name : null);
+                    return Names.Display(real[by], real[by].gameObject != null ? Utils.GetPrefabName(real[by].gameObject) : null);
 
                 return null;
             }

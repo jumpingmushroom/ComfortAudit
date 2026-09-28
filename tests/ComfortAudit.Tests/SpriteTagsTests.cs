@@ -28,5 +28,13 @@ namespace ComfortAudit.Tests
         {
             Assert.Equal(expected, SpriteTags.GlyphName(prefab));
         }
+
+        [Theory]
+        [InlineData("piece_chair(Clone)", "piece_chair")]
+        [InlineData("(Clone)", null)]
+        public void GlyphNameStripsTrailingCloneSuffix(string prefab, string expected)
+        {
+            Assert.Equal(expected, SpriteTags.GlyphName(prefab));
+        }
     }
 }

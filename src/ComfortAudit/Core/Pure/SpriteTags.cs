@@ -10,9 +10,17 @@ namespace ComfortAudit.Core.Pure
         /// <summary>
         /// The prefab name with any character that would end the tag's quoted attribute or the
         /// tag itself replaced. Vanilla prefab names never contain these; modded ones might.
+        /// Null or empty input, or input that is only Unity's "(Clone)" suffix, returns null.
         /// </summary>
         public static string GlyphName(string prefabName)
         {
+            if (string.IsNullOrEmpty(prefabName))
+                return null;
+
+            const string clone = "(Clone)";
+            if (prefabName.EndsWith(clone))
+                prefabName = prefabName.Substring(0, prefabName.Length - clone.Length);
+
             if (string.IsNullOrEmpty(prefabName))
                 return null;
 
