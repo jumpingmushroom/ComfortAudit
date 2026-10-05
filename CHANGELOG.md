@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.1 — tidy-up
+
+- Fixed: running `comfortaudit pieces` reordered the mod's piece catalogue, which could change
+  which of two equally good pieces was suggested.
+- `comfortaudit costs` now lists materials in alphabetical order.
+- Internal clean-up: unused code and duplicate logic removed. No change to what the panel shows.
+
 ## 0.5.0 — icons and chests
 
 - New: piece icons beside every piece in the panel — contributing, ignored, suggestions and the

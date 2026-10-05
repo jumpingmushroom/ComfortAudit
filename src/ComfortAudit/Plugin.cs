@@ -18,7 +18,7 @@ namespace ComfortAudit
     {
         public const string PluginGuid = "com.jumpingmushroom.comfortaudit";
         public const string PluginName = "ComfortAudit";
-        public const string PluginVersion = "0.5.0";
+        public const string PluginVersion = "0.5.1";
 
         internal static ManualLogSource Log;
 
