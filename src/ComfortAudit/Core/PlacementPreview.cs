@@ -77,16 +77,12 @@ namespace ComfortAudit.Core
             _memoRevision = SnapshotService.Revision;
             _memoShelter = snap.InShelter;
 
+            // The ghost is an instantiated copy, so its name carries Unity's "(Clone)" suffix.
+            string prefabName = Utils.GetPrefabName(ghost);
+
             result.Active = true;
-            result.DisplayName = Names.Display(piece, PrefabName(ghost.name));
-            result.PrefabName = PrefabName(ghost.name);
-            result.Group = piece.m_comfortGroup;
-            result.GroupKnown = ComfortGroups.IsKnown(piece.m_comfortGroup);
-
-            // The piece's designed value: a hearth ghost is unlit, so GetComfort() would read 0,
-            // but what the player wants to know is what the piece is worth once in use.
-            result.PieceComfort = piece.m_comfort;
-
+            result.DisplayName = Names.Display(piece, prefabName);
+            result.PrefabName = prefabName;
             result.Distance = Vector3.Distance(playerPos, ghostPos);
 
             // Comfort is always evaluated at the resting spot, so a piece only helps if it lands
@@ -117,6 +113,8 @@ namespace ComfortAudit.Core
             // the same gain again until the snapshot caught up.
             int baseline = ComfortWalk.Run(Items, snap.InShelter);
 
+            // The piece's designed value: a hearth ghost is unlit, so GetComfort() would read 0,
+            // but what the player wants to know is what the piece is worth once in use.
             Items.Add(new ComfortWalk.Item
             {
                 Group = piece.m_comfortGroup,
@@ -133,15 +131,6 @@ namespace ComfortAudit.Core
                 result.BlockedBy = FindBlocker(Buffer);
 
             return result;
-        }
-
-        /// <summary>The ghost is an instantiated copy, so its name carries Unity's "(Clone)" suffix.</summary>
-        private static string PrefabName(string ghostName)
-        {
-            const string clone = "(Clone)";
-            if (ghostName != null && ghostName.EndsWith(clone))
-                return ghostName.Substring(0, ghostName.Length - clone.Length);
-            return ghostName;
         }
 
         /// <summary>

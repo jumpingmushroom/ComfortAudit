@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using BepInEx;
 
 namespace ComfortAudit.Core
@@ -24,15 +23,11 @@ namespace ComfortAudit.Core
 
         private static Dictionary<string, float> _weights;
 
-        /// <summary>Tokens seen on real pieces that had no entry — surfaced by the console command.</summary>
-        private static readonly HashSet<string> Unknown = new HashSet<string>();
-
         public static void Load()
         {
             _weights = new Dictionary<string, float>(StringComparer.Ordinal);
-            Unknown.Clear();
 
-            Parse(ReadEmbedded("ComfortAudit.L10n.costs.json"));
+            Parse(L10n.Strings.ReadEmbedded("ComfortAudit.L10n.costs.json"));
 
             string overridePath = Path.Combine(Paths.ConfigPath, OverrideFileName);
             if (File.Exists(overridePath))
@@ -59,11 +54,7 @@ namespace ComfortAudit.Core
                 return DefaultWeight;
 
             float w;
-            if (_weights.TryGetValue(itemToken, out w))
-                return w;
-
-            Unknown.Add(itemToken);
-            return DefaultWeight;
+            return _weights.TryGetValue(itemToken, out w) ? w : DefaultWeight;
         }
 
         /// <summary>
@@ -77,8 +68,6 @@ namespace ComfortAudit.Core
 
             return !string.IsNullOrEmpty(itemToken) && _weights.ContainsKey(itemToken);
         }
-
-        public static IEnumerable<string> UnknownTokens => Unknown;
 
         public static int Count => _weights == null ? 0 : _weights.Count;
 
@@ -153,17 +142,6 @@ namespace ComfortAudit.Core
                     return i;
             }
             return -1;
-        }
-
-        private static string ReadEmbedded(string name)
-        {
-            using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name))
-            {
-                if (stream == null)
-                    return null;
-                using (var reader = new StreamReader(stream))
-                    return reader.ReadToEnd();
-            }
         }
     }
 }

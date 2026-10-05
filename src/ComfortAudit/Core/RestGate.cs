@@ -33,10 +33,6 @@ namespace ComfortAudit.Core
             bool warmCozy = EffectArea.IsPointInsideArea(
                 player.transform.position, EffectArea.Type.WarmCozyArea, 1f) != null;
 
-            r.NearFire = nearFire;
-            r.Sheltered = sheltered;
-            r.Sitting = sitting;
-
             r.Conditions.Add(new GateCondition("$comfortaudit_gate_fire", nearFire));
             // Shelter OR sitting satisfies this one — which is why you can rest at a campfire
             // under open sky, at comfort 1, with a furnished hall contributing nothing.
@@ -46,8 +42,6 @@ namespace ComfortAudit.Core
             r.Conditions.Add(new GateCondition("$comfortaudit_gate_notcold", !cold));
             r.Conditions.Add(new GateCondition("$comfortaudit_gate_notfreezing", !freezing));
             r.Conditions.Add(new GateCondition("$comfortaudit_gate_notburning", !burning));
-
-            r.CanRest = r.AllMet;
             return r;
         }
     }

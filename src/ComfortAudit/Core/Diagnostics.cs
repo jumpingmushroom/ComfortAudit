@@ -146,22 +146,13 @@ namespace ComfortAudit.Core
             if (entries == null)
                 return;
 
-            var counts = new Dictionary<Piece.ComfortGroup, int>();
-            var best = new Dictionary<Piece.ComfortGroup, int>();
-            var ungrouped = new List<string>();
+            Dictionary<Piece.ComfortGroup, int> counts, best;
+            PieceCatalog.GroupTally(entries, out counts, out best);
 
+            var ungrouped = new List<string>();
             for (int i = 0; i < entries.Count; i++)
             {
                 PieceCatalog.Entry e = entries[i];
-
-                int n;
-                counts.TryGetValue(e.Group, out n);
-                counts[e.Group] = n + 1;
-
-                int m;
-                if (!best.TryGetValue(e.Group, out m) || e.Comfort > m)
-                    best[e.Group] = e.Comfort;
-
                 if (e.Group == Piece.ComfortGroup.None)
                 {
                     // Display name matters as much as prefab name here: the game deduplicates
@@ -186,23 +177,7 @@ namespace ComfortAudit.Core
             if (entries == null)
                 return;
 
-            var used = new SortedDictionary<string, int>();
-
-            for (int i = 0; i < entries.Count; i++)
-            {
-                Piece.Requirement[] reqs = entries[i].Piece.m_resources;
-                if (reqs == null) continue;
-
-                for (int j = 0; j < reqs.Length; j++)
-                {
-                    string token = PieceCatalog.ItemToken(reqs[j]);
-                    if (string.IsNullOrEmpty(token)) continue;
-
-                    int n;
-                    used.TryGetValue(token, out n);
-                    used[token] = n + 1;
-                }
-            }
+            SortedDictionary<string, int> used = PieceCatalog.MaterialTokenUsage(entries);
 
             var known = new List<string>();
             var unknown = new List<string>();

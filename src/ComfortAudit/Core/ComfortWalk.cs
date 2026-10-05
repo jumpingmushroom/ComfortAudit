@@ -61,17 +61,12 @@ namespace ComfortAudit.Core
             if (outcomes != null)
                 outcomes.Clear();
 
-            int total = 1;
-            if (!inShelter)
-            {
-                // Unsheltered the game never enters the loop: comfort is a hard 1 and no
-                // furniture counts. Still report the items so callers can show what *would* count.
-                if (outcomes != null)
-                    ReportOnly(items, outcomes);
-                return total;
-            }
+            // Unsheltered the game never enters the loop: comfort is a hard 1 and no furniture
+            // counts. Still walk when asked for outcomes, so callers can show what *would* count.
+            if (!inShelter && outcomes == null)
+                return 1;
 
-            total++; // shelter itself is +1
+            int total = inShelter ? 2 : 1; // shelter itself is +1
             items.Sort(Sort);
 
             for (int i = 0; i < items.Count; i++)
@@ -97,7 +92,8 @@ namespace ComfortAudit.Core
                 }
 
                 Add(outcomes, cur.Source, PieceStatus.Counted, -1);
-                total += cur.Comfort;
+                if (inShelter)
+                    total += cur.Comfort;
             }
 
             return total;
@@ -150,30 +146,6 @@ namespace ComfortAudit.Core
             changed.Comfort = comfort;
             Scratch[index] = changed;
             return Run(Scratch, true);
-        }
-
-        private static void ReportOnly(List<Item> items, List<Outcome> outcomes)
-        {
-            items.Sort(Sort);
-            for (int i = 0; i < items.Count; i++)
-            {
-                Item cur = items[i];
-                if (i > 0)
-                {
-                    Item prev = items[i - 1];
-                    if (cur.Group != Piece.ComfortGroup.None && cur.Group == prev.Group)
-                    {
-                        Add(outcomes, cur.Source, PieceStatus.ShadowedByGroup, prev.Source);
-                        continue;
-                    }
-                    if (cur.NameToken == prev.NameToken)
-                    {
-                        Add(outcomes, cur.Source, PieceStatus.ShadowedByName, prev.Source);
-                        continue;
-                    }
-                }
-                Add(outcomes, cur.Source, PieceStatus.Counted, -1);
-            }
         }
 
         private static void Add(List<Outcome> outcomes, int source, PieceStatus status, int by)

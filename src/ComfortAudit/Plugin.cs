@@ -92,24 +92,23 @@ namespace ComfortAudit
         /// <summary>Logged out or returned to the menu: close up and forget the world.</summary>
         private void LocalPlayerGone()
         {
-            _snapshot = new ComfortSnapshot();
-            SnapshotService.Clear();
             _panel.SetOpen(false);
-            _nextScan = 0f;
-
-            // Prefabs are per-world; drop the catalogue so a different world rebuilds it.
-            PieceCatalog.Invalidate();
-            ComfortScanner.ResetHistory();
-            Diagnostics.Reset();
-            ContainerStock.Reset();
+            ForgetWorld();
         }
 
         /// <summary>A new local player: a fresh world, or a respawn into a new instance.</summary>
         private void LocalPlayerArrived()
         {
+            ForgetWorld();
+        }
+
+        private void ForgetWorld()
+        {
             _snapshot = new ComfortSnapshot();
             SnapshotService.Clear();
             _nextScan = 0f;
+
+            // Prefabs are per-world; drop the catalogue so a different world rebuilds it.
             PieceCatalog.Invalidate();
             ComfortScanner.ResetHistory();
             Diagnostics.Reset();

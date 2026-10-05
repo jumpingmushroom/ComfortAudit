@@ -48,7 +48,7 @@ namespace ComfortAudit.L10n
             return args == null || args.Length == 0 ? s : string.Format(s, args);
         }
 
-        private static string ReadEmbedded(string name)
+        internal static string ReadEmbedded(string name)
         {
             Assembly asm = Assembly.GetExecutingAssembly();
             using (Stream stream = asm.GetManifestResourceStream(name))

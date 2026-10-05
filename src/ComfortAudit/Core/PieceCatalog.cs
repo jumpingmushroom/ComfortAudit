@@ -146,7 +146,6 @@ namespace ComfortAudit.Core
         }
 
         public static bool Ready => _entries != null;
-        public static int Count => _entries == null ? 0 : _entries.Count;
 
         public static void Invalidate()
         {
@@ -242,6 +241,52 @@ namespace ComfortAudit.Core
             return total;
         }
 
+        /// <summary>How many catalogue pieces use each material token, sorted by token.</summary>
+        public static SortedDictionary<string, int> MaterialTokenUsage(List<Entry> entries)
+        {
+            var used = new SortedDictionary<string, int>(System.StringComparer.Ordinal);
+
+            for (int i = 0; i < entries.Count; i++)
+            {
+                Piece.Requirement[] reqs = entries[i].Piece.m_resources;
+                if (reqs == null) continue;
+
+                for (int j = 0; j < reqs.Length; j++)
+                {
+                    string token = ItemToken(reqs[j]);
+                    if (string.IsNullOrEmpty(token)) continue;
+
+                    int n;
+                    used.TryGetValue(token, out n);
+                    used[token] = n + 1;
+                }
+            }
+
+            return used;
+        }
+
+        /// <summary>Per comfort group: how many catalogue pieces it has, and its best comfort.</summary>
+        public static void GroupTally(List<Entry> entries,
+            out Dictionary<Piece.ComfortGroup, int> counts,
+            out Dictionary<Piece.ComfortGroup, int> best)
+        {
+            counts = new Dictionary<Piece.ComfortGroup, int>();
+            best = new Dictionary<Piece.ComfortGroup, int>();
+
+            for (int i = 0; i < entries.Count; i++)
+            {
+                Entry e = entries[i];
+
+                int n;
+                counts.TryGetValue(e.Group, out n);
+                counts[e.Group] = n + 1;
+
+                int m;
+                if (!best.TryGetValue(e.Group, out m) || e.Comfort > m)
+                    best[e.Group] = e.Comfort;
+            }
+        }
+
         public static string ItemToken(Piece.Requirement req)
         {
             if (req == null || req.m_resItem == null || req.m_resItem.m_itemData == null ||
@@ -249,22 +294,6 @@ namespace ComfortAudit.Core
                 return null;
 
             return req.m_resItem.m_itemData.m_shared.m_name;
-        }
-
-        /// <summary>Number of distinct materials, used as a late tie-break.</summary>
-        public static int MaterialCount(Piece piece)
-        {
-            if (piece.m_resources == null)
-                return 0;
-
-            int n = 0;
-            for (int i = 0; i < piece.m_resources.Length; i++)
-            {
-                Piece.Requirement req = piece.m_resources[i];
-                if (req != null && req.m_resItem != null && req.m_amount > 0)
-                    n++;
-            }
-            return n;
         }
     }
 }

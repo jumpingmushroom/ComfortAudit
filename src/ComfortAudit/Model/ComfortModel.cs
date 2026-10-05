@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using ComfortAudit.Core.Pure;
-using UnityEngine;
 
 namespace ComfortAudit.Model
 {
@@ -64,7 +63,6 @@ namespace ComfortAudit.Model
         public int RemovalLoss;
 
         public float Distance;
-        public Sprite Icon;
 
         public bool Contributing => Status == PieceStatus.Counted && Comfort > 0;
     }
@@ -85,20 +83,6 @@ namespace ComfortAudit.Model
     public sealed class RestGateResult
     {
         public List<GateCondition> Conditions = new List<GateCondition>();
-        public bool CanRest;
-        public bool NearFire;
-        public bool Sheltered;
-        public bool Sitting;
-
-        public bool AllMet
-        {
-            get
-            {
-                for (int i = 0; i < Conditions.Count; i++)
-                    if (!Conditions[i].Met) return false;
-                return true;
-            }
-        }
     }
 
     public enum RecommendationKind
@@ -131,7 +115,6 @@ namespace ComfortAudit.Model
         /// <summary>Held in accessible chests and carts nearby, not counting the inventory.</summary>
         public int InChests;
 
-        public bool Enough => Have >= Amount;
         public MaterialState State => MaterialMath.Classify(Amount, Have, InChests);
     }
 
@@ -195,11 +178,6 @@ namespace ComfortAudit.Model
 
         public string DisplayName;
         public string PrefabName;
-        public Piece.ComfortGroup Group;
-        public bool GroupKnown;
-
-        /// <summary>The piece's designed comfort value.</summary>
-        public int PieceComfort;
 
         public int Delta;
         public int NewTotal;
@@ -213,7 +191,6 @@ namespace ComfortAudit.Model
     public sealed class ComfortSnapshot
     {
         public bool Valid;
-        public float Time;
 
         /// <summary>Comfort as this mod computed it, replicating SE_Rested.CalculateComfortLevel.</summary>
         public int ComfortLevel;

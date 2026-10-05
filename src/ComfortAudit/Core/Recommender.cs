@@ -135,9 +135,6 @@ namespace ComfortAudit.Core
         /// </summary>
         private static void AddShelter(ComfortSnapshot snap, List<Recommendation> results)
         {
-            if (snap.InShelter)
-                return;
-
             int gain = snap.PotentialIfSheltered - snap.ComfortLevel;
             if (gain <= 0)
                 return;

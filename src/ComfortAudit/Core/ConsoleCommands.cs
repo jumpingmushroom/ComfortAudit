@@ -123,9 +123,12 @@ namespace ComfortAudit.Core
 
         private static void DumpPieces(Terminal ctx)
         {
-            List<PieceCatalog.Entry> entries = Catalog(ctx);
-            if (entries == null) return;
+            List<PieceCatalog.Entry> catalog = Catalog(ctx);
+            if (catalog == null) return;
 
+            // A copy: the catalogue is shared and cached, and the recommender's tie-breaks
+            // depend on its order.
+            var entries = new List<PieceCatalog.Entry>(catalog);
             entries.Sort(delegate (PieceCatalog.Entry a, PieceCatalog.Entry b)
             {
                 if (a.Group != b.Group) return a.Group.CompareTo(b.Group);
@@ -147,23 +150,7 @@ namespace ComfortAudit.Core
             List<PieceCatalog.Entry> entries = Catalog(ctx);
             if (entries == null) return;
 
-            var used = new Dictionary<string, int>();
-
-            for (int i = 0; i < entries.Count; i++)
-            {
-                Piece.Requirement[] reqs = entries[i].Piece.m_resources;
-                if (reqs == null) continue;
-
-                for (int j = 0; j < reqs.Length; j++)
-                {
-                    string token = PieceCatalog.ItemToken(reqs[j]);
-                    if (string.IsNullOrEmpty(token)) continue;
-
-                    int n;
-                    used.TryGetValue(token, out n);
-                    used[token] = n + 1;
-                }
-            }
+            SortedDictionary<string, int> used = PieceCatalog.MaterialTokenUsage(entries);
 
             ctx.AddString("ComfortAudit: " + used.Count + " material tokens used by comfort pieces ("
                           + CostTable.Count + " weights loaded)");
@@ -197,21 +184,8 @@ namespace ComfortAudit.Core
             List<PieceCatalog.Entry> entries = Catalog(ctx);
             if (entries == null) return;
 
-            var perGroup = new Dictionary<Piece.ComfortGroup, int>();
-            var maxComfort = new Dictionary<Piece.ComfortGroup, int>();
-
-            for (int i = 0; i < entries.Count; i++)
-            {
-                PieceCatalog.Entry e = entries[i];
-
-                int n;
-                perGroup.TryGetValue(e.Group, out n);
-                perGroup[e.Group] = n + 1;
-
-                int m;
-                if (!maxComfort.TryGetValue(e.Group, out m) || e.Comfort > m)
-                    maxComfort[e.Group] = e.Comfort;
-            }
+            Dictionary<Piece.ComfortGroup, int> perGroup, maxComfort;
+            PieceCatalog.GroupTally(entries, out perGroup, out maxComfort);
 
             foreach (KeyValuePair<Piece.ComfortGroup, int> kv in perGroup)
             {

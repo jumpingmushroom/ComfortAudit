@@ -23,7 +23,7 @@ namespace ComfortAudit.Core
 
         public static ComfortSnapshot Scan(Player player)
         {
-            var snap = new ComfortSnapshot { Time = Time.time };
+            var snap = new ComfortSnapshot();
 
             if (player == null || player.m_nview == null)
                 return snap;
@@ -199,8 +199,7 @@ namespace ComfortAudit.Core
                 RawComfort = piece.m_comfort,
                 // GetComfort() returns 0 when m_comfortObject is switched off — an unlit fire.
                 Inactive = comfort == 0 && piece.m_comfort > 0,
-                Distance = Vector3.Distance(from, piece.transform.position),
-                Icon = piece.m_icon
+                Distance = Vector3.Distance(from, piece.transform.position)
             };
         }
     }
